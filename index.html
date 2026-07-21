@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบคัดกรองและสัมภาษณ์ - Online</title>
+    <title>ระบบคัดกรองและสัมภาษณ์ - Sync Version</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
@@ -78,8 +78,15 @@
         .status-accepted { background: #c8e6c9; color: #2e7d32; }
         .status-rejected { background: #ffcdd2; color: #c62828; }
         
-        .btn-add { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
-        .btn-export { padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .btn-add { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; margin-right: 10px; }
+        .btn-export { padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; margin-right: 10px; }
+        .btn-import { padding: 10px 20px; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        
+        /* Sync Panel */
+        .sync-panel { background: #fff3e0; border: 2px solid #ff9800; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .sync-panel h3 { color: #f57c00; margin-bottom: 15px; }
+        .sync-panel p { color: #666; margin-bottom: 15px; }
+        .sync-buttons { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
@@ -128,9 +135,7 @@
                 <div class="tabs-nav">
                     <button onclick="showTab('dashboard')" class="tab-btn active">📊 Dashboard</button>
                     <button onclick="showTab('applicants')" class="tab-btn">👥 ผู้สมัคร</button>
-                    <button onclick="showTab('assessment')" class="tab-btn">📝 แบบทดสอบ</button>
-                    <button onclick="showTab('interview')" class="tab-btn">🎤 สัมภาษณ์</button>
-                    <button onclick="showTab('reports')" class="tab-btn">📈 รายงาน</button>
+                    <button onclick="showTab('sync')" class="tab-btn">🔄 Sync ข้อมูล</button>
                 </div>
             </div>
         </div>
@@ -177,27 +182,44 @@
                 </div>
             </div>
 
-            <!-- Assessment -->
-            <div id="assessmentTab" class="tab-content hidden">
-                <div class="card">
-                    <h2>📝 แบบทดสอบ</h2>
-                    <p style="color: #666;">เลือกผู้สมัครจากหน้ารายชื่อเพื่อเริ่มแบบทดสอบ</p>
-                </div>
-            </div>
+            <!-- Sync -->
+            <div id="syncTab" class="tab-content hidden">
+                <div class="sync-panel">
+                    <h3>🔄 Sync ข้อมูลระหว่างผู้ปฏิบัติงาน</h3>
+                    <p>ระบบนี้เก็บข้อมูลในเบราว์เซอร์แต่ละเครื่อง ใช้ฟีเจอร์นี้เพื่อ sync ข้อมูลระหว่างกัน</p>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-bottom: 10px; color: #f57c00;">📤 Export ข้อมูล (ส่งให้คนอื่น)</h4>
+                        <p style="margin-bottom: 10px; font-size: 14px;">คลิกปุ่มด้านล่างเพื่อ export ข้อมูลทั้งหมดเป็นไฟล์ JSON แล้วส่งไฟล์ให้ผู้อื่น</p>
+                        <button onclick="exportAllData()" class="btn-export">📤 Export ข้อมูลทั้งหมด</button>
+                    </div>
 
-            <!-- Interview -->
-            <div id="interviewTab" class="tab-content hidden">
-                <div class="card">
-                    <h2>🎤 การสัมภาษณ์</h2>
-                    <p style="color: #666;">จัดการการสัมภาษณ์และให้คะแนน</p>
-                </div>
-            </div>
+                    <div>
+                        <h4 style="margin-bottom: 10px; color: #f57c00;">📥 Import ข้อมูล (รับจากคนอื่น)</h4>
+                        <p style="margin-bottom: 10px; font-size: 14px;">เลือกไฟล์ JSON ที่ได้รับจากผู้อื่นเพื่อ import เข้าระบบ</p>
+                        <input type="file" id="importFile" accept=".json" style="margin-bottom: 10px;">
+                        <br>
+                        <button onclick="importAllData()" class="btn-import">📥 Import ข้อมูล</button>
+                    </div>
 
-            <!-- Reports -->
-            <div id="reportsTab" class="tab-content hidden">
+                    <div style="margin-top: 20px; padding: 15px; background: #fff; border-radius: 5px;">
+                        <h4 style="margin-bottom: 10px; color: #333;">💡 วิธีใช้งาน</h4>
+                        <ol style="margin-left: 20px; color: #666; line-height: 1.8;">
+                            <li>Admin เพิ่มข้อมูลผู้สมัคร</li>
+                            <li>Admin คลิก "Export ข้อมูลทั้งหมด" → ได้ไฟล์ JSON</li>
+                            <li>ส่งไฟล์ JSON ให้ผู้ปฏิบัติงานคนอื่น (ทาง LINE, Email, etc.)</li>
+                            <li>ผู้ปฏิบัติงานคนอื่นคลิก "Import ข้อมูล" → เลือกไฟล์ JSON</li>
+                            <li>ข้อมูลจะ sync กันทั้งหมด</li>
+                        </ol>
+                    </div>
+                </div>
+
                 <div class="card">
-                    <h2>📈 รายงาน</h2>
-                    <p style="color: #666;">รายงานสรุปผลการคัดกรองและสัมภาษณ์</p>
+                    <h2>📊 สถิติการ Sync</h2>
+                    <div id="syncStats">
+                        <p style="color: #666;">最后一次 sync: <span id="lastSync">ยังไม่เคย sync</span></p>
+                        <p style="color: #666;">จำนวนครั้งที่ sync: <span id="syncCount">0</span></p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -230,6 +252,18 @@
                     accepted: applicants.filter(a => a.status === 'accepted').length,
                     rejected: applicants.filter(a => a.status === 'rejected').length
                 };
+            },
+            exportAll() {
+                return {
+                    applicants: this.getApplicants(),
+                    exportedAt: new Date().toISOString(),
+                    version: '1.0'
+                };
+            },
+            importAll(data) {
+                if (data.applicants) {
+                    localStorage.setItem('applicants', JSON.stringify(data.applicants));
+                }
             }
         };
 
@@ -264,6 +298,7 @@
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('userName').textContent = user.name;
             loadDashboard();
+            loadSyncStats();
         }
 
         function logout() {
@@ -289,6 +324,7 @@
             
             if (tabName === 'dashboard') loadDashboard();
             if (tabName === 'applicants') loadApplicants();
+            if (tabName === 'sync') loadSyncStats();
         }
 
         // Dashboard
@@ -385,6 +421,73 @@
             a.href = url;
             a.download = `applicants_${new Date().toISOString().split('T')[0]}.json`;
             a.click();
+        }
+
+        // Sync Functions
+        function exportAllData() {
+            const data = store.exportAll();
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `recruitment_sync_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+            a.click();
+            
+            // Update sync stats
+            const syncCount = parseInt(localStorage.getItem('syncCount') || '0') + 1;
+            localStorage.setItem('syncCount', syncCount);
+            localStorage.setItem('lastSync', new Date().toISOString());
+            loadSyncStats();
+            
+            alert('Export สำเร็จ! ส่งไฟล์นี้ให้ผู้ปฏิบัติงานคนอื่น');
+        }
+
+        function importAllData() {
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('กรุณาเลือกไฟล์');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (!data.applicants) {
+                        alert('ไฟล์ไม่ถูกต้อง');
+                        return;
+                    }
+                    
+                    if (confirm(`พบข้อมูลผู้สมัคร ${data.applicants.length} คน\nต้องการ import หรือไม่?\n\n⚠️ ข้อมูลเดิมจะถูกแทนที่`)) {
+                        store.importAll(data);
+                        
+                        // Update sync stats
+                        const syncCount = parseInt(localStorage.getItem('syncCount') || '0') + 1;
+                        localStorage.setItem('syncCount', syncCount);
+                        localStorage.setItem('lastSync', new Date().toISOString());
+                        
+                        loadDashboard();
+                        loadSyncStats();
+                        alert('Import สำเร็จ!');
+                    }
+                } catch (error) {
+                    alert('ไม่สามารถอ่านไฟล์ได้: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadSyncStats() {
+            const lastSync = localStorage.getItem('lastSync');
+            const syncCount = localStorage.getItem('syncCount') || '0';
+            
+            document.getElementById('lastSync').textContent = lastSync ? 
+                new Date(lastSync).toLocaleString('th-TH') : 'ยังไม่เคย sync';
+            document.getElementById('syncCount').textContent = syncCount;
         }
     </script>
 </body>
