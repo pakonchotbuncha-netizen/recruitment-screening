@@ -346,7 +346,7 @@ Interviewer: interviewer / interview123
 </div>
 
 <script>
-var DATA_URL='data.json';
+var DATA_URL='https://pakonchotbuncha-netizen.github.io/recruitment-screening/data.json';
 var currentData={applicants:[]};
 var syncInterval=null;
 
@@ -383,16 +383,19 @@ location.reload();
 function loadData(){
 updateSync('loading','🔄 กำลัง sync...');
 fetch(DATA_URL+'?t='+Date.now())
-.then(function(r){return r.json();})
+.then(function(r){
+if(!r.ok) throw new Error('HTTP '+r.status);
+return r.json();
+})
 .then(function(data){
 currentData=data||{applicants:[]};
 if(!currentData.applicants)currentData.applicants=[];
-updateSync('ok','✅ Sync แล้ว ('+new Date().toLocaleTimeString('th-TH')+')');
+updateSync('ok','✅ Sync แล้ว ('+currentData.applicants.length+' คน)');
 render();
 })
 .catch(function(err){
-console.error(err);
-updateSync('error','❌ Sync ล้มเหลว');
+console.error('Load error:',err);
+updateSync('error','❌ Sync ล้มเหลว: '+err.message);
 });
 }
 
