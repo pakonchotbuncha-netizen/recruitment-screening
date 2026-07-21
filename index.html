@@ -254,6 +254,47 @@ Interviewer: interviewer / interview123
 <p><strong>ตำแหน่ง:</strong> <span id="interviewPosition"></span></p>
 <p><strong>วันที่สมัคร:</strong> <span id="interviewDate"></span></p>
 </div>
+<div style="background:#fff3e0;padding:20px;border-radius:5px;margin-bottom:20px;border:1px solid #ffcc80">
+<h4 style="margin-top:0;color:#e65100">📅 เลือกวันและเวลาสัมภาษณ์</h4>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+<div>
+<label style="display:block;margin-bottom:5px;font-weight:600">วันที่สัมภาษณ์:</label>
+<input type="date" id="interviewDateSelect" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:5px">
+</div>
+<div>
+<label style="display:block;margin-bottom:5px;font-weight:600">เวลา:</label>
+<select id="interviewTimeSelect" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:5px">
+<option value="">-- เลือกเวลา --</option>
+<option value="09:00">09:00 น.</option>
+<option value="09:30">09:30 น.</option>
+<option value="10:00">10:00 น.</option>
+<option value="10:30">10:30 น.</option>
+<option value="11:00">11:00 น.</option>
+<option value="11:30">11:30 น.</option>
+<option value="13:00">13:00 น.</option>
+<option value="13:30">13:30 น.</option>
+<option value="14:00">14:00 น.</option>
+<option value="14:30">14:30 น.</option>
+<option value="15:00">15:00 น.</option>
+<option value="15:30">15:30 น.</option>
+<option value="16:00">16:00 น.</option>
+<option value="16:30">16:30 น.</option>
+</select>
+</div>
+</div>
+<div style="margin-top:10px">
+<label style="display:block;margin-bottom:5px;font-weight:600">ห้องสัมภาษณ์:</label>
+<select id="interviewRoomSelect" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:5px">
+<option value="">-- เลือกห้อง --</option>
+<option value="ห้องประชุม A">ห้องประชุม A</option>
+<option value="ห้องประชุม B">ห้องประชุม B</option>
+<option value="ห้องประชุม C">ห้องประชุม C</option>
+<option value="ห้อง HR">ห้อง HR</option>
+<option value="Online (Google Meet)">Online (Google Meet)</option>
+<option value="Online (Zoom)">Online (Zoom)</option>
+</select>
+</div>
+</div>
 <h4>ให้คะแนน (1-5)</h4>
 <div id="interviewQuestions" style="margin-top:15px"></div>
 <div style="margin-top:20px">
@@ -512,6 +553,15 @@ alert('กรุณาเลือกผู้สมัคร');
 return;
 }
 
+var interviewDate=document.getElementById('interviewDateSelect').value;
+var interviewTime=document.getElementById('interviewTimeSelect').value;
+var interviewRoom=document.getElementById('interviewRoomSelect').value;
+
+if(!interviewDate||!interviewTime||!interviewRoom){
+alert('กรุณาเลือกวัน เวลา และห้องสัมภาษณ์');
+return;
+}
+
 var scores={};
 var allAnswered=true;
 interviewQuestions.forEach(function(q){
@@ -534,6 +584,9 @@ var interviewer=JSON.parse(localStorage.getItem('session')).username;
 var interview={
 applicantId:applicantId,
 interviewer:interviewer,
+interviewDate:interviewDate,
+interviewTime:interviewTime,
+interviewRoom:interviewRoom,
 scores:scores,
 comment:comment,
 timestamp:new Date().toISOString()
@@ -548,6 +601,9 @@ currentData.interviews.push(interview);
 var applicant=currentData.applicants.find(function(a){return a.id===applicantId;});
 if(applicant){
 applicant.status='interviewed';
+applicant.interviewDate=interviewDate;
+applicant.interviewTime=interviewTime;
+applicant.interviewRoom=interviewRoom;
 }
 
 saveData().then(function(ok){
