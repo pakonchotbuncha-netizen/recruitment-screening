@@ -152,7 +152,7 @@ Interviewer: interviewer / interview123
 </div>
 
 <script>
-var DATA_URL='https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d';
+var DATA_URL='https://raw.githubusercontent.com/pakonchotbuncha-netizen/recruitment-data/main/data.json';
 var currentData={applicants:[]};
 var syncInterval=null;
 
@@ -188,7 +188,7 @@ location.reload();
 
 function loadData(){
 updateSync('loading','🔄 กำลัง sync...');
-fetch(DATA_URL,{headers:{'Accept':'application/json'}})
+fetch(DATA_URL+'?t='+Date.now())
 .then(function(r){return r.json();})
 .then(function(data){
 currentData=data||{applicants:[]};
