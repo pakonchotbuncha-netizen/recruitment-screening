@@ -15,8 +15,9 @@ h1 { color: #333; }
 .stat-label { color: #666; margin-top: 5px; }
 .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
 .filters select, .filters input { padding: 8px 15px; border: 1px solid #ddd; border-radius: 5px; }
-.applicant { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px; background: white; }
+.applicant { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px; background: white; display: flex; justify-content: space-between; align-items: center; }
 .applicant:hover { background: #f9f9f9; }
+.applicant-info { flex: 1; }
 .applicant h3 { margin: 0 0 5px 0; }
 .applicant p { margin: 3px 0; color: #666; }
 .status { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
@@ -26,6 +27,9 @@ h1 { color: #333; }
 .status-interviewed { background: #f3e5f5; color: #7b1fa2; }
 .status-accepted { background: #c8e6c9; color: #2e7d32; }
 .status-rejected { background: #ffcdd2; color: #c62828; }
+.btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+.btn-assessment { background: #9c27b0; color: white; }
+.btn-assessment:hover { background: #7b1fa2; }
 </style>
 </head>
 <body>
@@ -126,10 +130,13 @@ function render() {
             }[item.status] || item.status;
             
             return '<div class="applicant">' +
+                   '<div class="applicant-info">' +
                    '<h3>' + (item.fullName || '-') + '</h3>' +
                    '<p>' + (item.position || '-') + '</p>' +
                    '<p style="font-size:12px;color:#999">' + (item.originalStatus || '') + ' | สมัครเมื่อ: ' + (item.applyDate || '-') + '</p>' +
                    '<span class="status status-' + item.status + '">' + statusText + '</span>' +
+                   '</div>' +
+                   '<button class="btn btn-assessment" onclick="startAssessment(\'' + item.id + '\')">📝 ทำแบบทดสอบ</button>' +
                    '</div>';
         }).join('');
         
@@ -137,6 +144,20 @@ function render() {
             list.innerHTML += '<p style="text-align:center;color:#999;margin-top:20px">แสดง 100 จาก ' + a.length + ' คน (ใช้ตัวกรองเพื่อค้นหา)</p>';
         }
     }
+}
+
+function startAssessment(applicantId) {
+    var applicant = currentData.applicants.find(function(x) { return x.id === applicantId; });
+    if (!applicant) {
+        alert('ไม่พบข้อมูลผู้สมัคร');
+        return;
+    }
+    
+    // เก็บข้อมูลผู้สมัครใน localStorage
+    localStorage.setItem('currentApplicant', JSON.stringify(applicant));
+    
+    // ไปหน้าแบบทดสอบ
+    window.location.href = 'assessment.html';
 }
 
 // เรียก render() เมื่อโหลดหน้า

@@ -1,99 +1,197 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>แบบทดสอบ - กระบวนการคัดกรองและสัมภาษณ์</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แบบทดสอบผู้สมัคร</title>
+<style>
+body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+.container { max-width: 800px; margin: 0 auto; }
+.card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+h1 { color: #333; }
+h2 { color: #9c27b0; margin-top: 30px; }
+.applicant-info { background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+.applicant-info h3 { margin: 0 0 10px 0; color: #1976d2; }
+.applicant-info p { margin: 5px 0; }
+.question { margin-bottom: 25px; padding: 20px; background: #f9f9f9; border-radius: 8px; }
+.question p { font-weight: 600; margin-bottom: 15px; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { display: flex; align-items: center; }
+.option input[type="radio"] { margin-right: 10px; }
+.option label { cursor: pointer; flex: 1; }
+.btn { padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 16px; }
+.btn-submit { background: #4caf50; color: white; width: 100%; margin-top: 20px; }
+.btn-submit:hover { background: #388e3c; }
+.btn-back { background: #757575; color: white; margin-right: 10px; }
+.btn-back:hover { background: #616161; }
+.success { background: #c8e6c9; padding: 20px; border-radius: 8px; text-align: center; }
+.success h2 { color: #2e7d32; margin: 0 0 10px 0; }
+</style>
 </head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold">📝 แบบทดสอบผู้สมัคร</h1>
-                    <p class="text-purple-100 mt-1">Step 3: ประเมินทัศนคติ ทักษะ CC และ 3E3P</p>
-                </div>
-                <a href="applicants.html" class="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-purple-50">
-                    ← กลับหน้ารายชื่อ
-                </a>
-            </div>
-        </div>
-    </header>
+<body>
+<div class="container">
+<h1>📝 แบบทดสอบผู้สมัคร</h1>
 
-    <main class="container mx-auto px-4 py-8">
-        <!-- Applicant Info -->
-        <div id="applicantInfo" class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-bold mb-4">ข้อมูลผู้สมัคร</h2>
-            <div id="applicantDetails" class="text-gray-600">
-                กรุณาเลือกผู้สมัครจากหน้ารายชื่อก่อน
-            </div>
-        </div>
+<div id="assessmentContent">
+<div class="applicant-info" id="applicantInfo"></div>
 
-        <!-- Assessment Tabs -->
-        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div class="border-b mb-4">
-                <nav class="flex gap-4">
-                    <button onclick="showTab('attitude')" class="tab-btn px-4 py-2 font-medium text-purple-600 border-b-2 border-purple-600" data-tab="attitude">
-                        🎯 ทัศนคติ
-                    </button>
-                    <button onclick="showTab('skill')" class="tab-btn px-4 py-2 font-medium text-gray-500 hover:text-gray-700" data-tab="skill">
-                        💡 ทักษะ
-                    </button>
-                    <button onclick="showTab('cc')" class="tab-btn px-4 py-2 font-medium text-gray-500 hover:text-gray-700" data-tab="cc">
-                        🏢 ทุนองค์กร (CC)
-                    </button>
-                    <button onclick="showTab('3e3p')" class="tab-btn px-4 py-2 font-medium text-gray-500 hover:text-gray-700" data-tab="3e3p">
-                        📊 3E3P
-                    </button>
-                </nav>
-            </div>
+<div class="card">
+<h2>🎯 แบบทดสอบทัศนคติ</h2>
+<div id="attitudeQuestions"></div>
 
-            <!-- Attitude Tab -->
-            <div id="attitudeTab" class="tab-content">
-                <h3 class="text-lg font-bold mb-4">แบบทดสอบทัศนคติ</h3>
-                <div id="attitudeQuestions" class="space-y-6">
-                    <!-- Questions will be rendered here -->
-                </div>
-            </div>
+<h2>💡 แบบทดสอบทักษะ</h2>
+<div id="skillQuestions"></div>
 
-            <!-- Skill Tab -->
-            <div id="skillTab" class="tab-content hidden">
-                <h3 class="text-lg font-bold mb-4">แบบทดสอบทักษะ</h3>
-                <div id="skillQuestions" class="space-y-6">
-                    <!-- Questions will be rendered here -->
-                </div>
-            </div>
+<h2>🏢 แบบทดสอบทุนองค์กร (CC)</h2>
+<div id="ccQuestions"></div>
 
-            <!-- CC Tab -->
-            <div id="ccTab" class="tab-content hidden">
-                <h3 class="text-lg font-bold mb-4">แบบทดสอบทุนองค์กร (Core Competency)</h3>
-                <div id="ccQuestions" class="space-y-6">
-                    <!-- Questions will be rendered here -->
-                </div>
-            </div>
+<h2>📊 แบบทดสอบ 3E3P</h2>
+<div id="3e3pQuestions"></div>
 
-            <!-- 3E3P Tab -->
-            <div id="3e3pTab" class="tab-content hidden">
-                <h3 class="text-lg font-bold mb-4">แบบทดสอบ 3E3P</h3>
-                <div id="3e3pQuestions" class="space-y-6">
-                    <!-- Questions will be rendered here -->
-                </div>
-            </div>
-        </div>
+<button class="btn btn-submit" onclick="submitAssessment()">✅ ส่งคะแนน</button>
+</div>
+</div>
 
-        <!-- Submit Button -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <button onclick="submitAssessment()" class="w-full bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 font-semibold text-lg">
-                ✅ ส่งคำตอบ
-            </button>
-        </div>
-    </main>
+<div id="successMessage" class="success" style="display:none;">
+<h2>✅ ส่งคะแนนสำเร็จ!</h2>
+<p>ระบบได้บันทึกคะแนนและอัปเดตสถานะผู้สมัครแล้ว</p>
+<button class="btn btn-back" onclick="goBack()">← กลับไปหน้าหลัก</button>
+</div>
+</div>
 
-    <script src="js/data-store.js"></script>
-    <script src="js/assessment.js"></script>
+<script>
+// โหลดข้อมูลผู้สมัคร
+var applicant = JSON.parse(localStorage.getItem('currentApplicant') || 'null');
+
+if (!applicant) {
+    alert('ไม่พบข้อมูลผู้สมัคร');
+    window.location.href = 'index.html';
+}
+
+// แสดงข้อมูลผู้สมัคร
+document.getElementById('applicantInfo').innerHTML = 
+    '<h3>' + applicant.fullName + '</h3>' +
+    '<p><strong>ตำแหน่ง:</strong> ' + (applicant.position || '-') + '</p>' +
+    '<p><strong>วันที่สมัคร:</strong> ' + (applicant.applyDate || '-') + '</p>';
+
+// แบบทดสอบ
+var questions = {
+    attitude: [
+        { id: 'att1', text: 'ท่านรู้สึกอย่างไรเมื่อต้องทำงานภายใต้ความกดดัน?' },
+        { id: 'att2', text: 'เมื่อเกิดข้อขัดแย้งในทีม ท่านจะทำอย่างไร?' },
+        { id: 'att3', text: 'ท่านมีทัศนคติต่อการเปลี่ยนแปลงอย่างไร?' }
+    ],
+    skill: [
+        { id: 'skill1', text: 'ท่านสามารถวางแผนและจัดลำดับความสำคัญของงานได้อย่างไร?' },
+        { id: 'skill2', text: 'ทักษะการสื่อสารและการนำเสนอของท่านเป็นอย่างไร?' },
+        { id: 'skill3', text: 'ท่านสามารถแก้ปัญหาที่ซับซ้อนได้อย่างไร?' }
+    ],
+    cc: [
+        { id: 'cc1', text: 'CC1: ความเก่งในการนำผู้รับใช้ (Servant Leadership)' },
+        { id: 'cc2', text: 'CC2: ความเก่งในการปรับตัวและสร้างนวัตกรรม' },
+        { id: 'cc3', text: 'CC3: ความเก่งในการสร้างคุณค่าบนฐานความไว้วางใจ' }
+    ],
+    '3e3p': [
+        { id: '3e1', text: '3E: Energy - ท่านมีพลังงานและแรงจูงใจในการทำงานอย่างไร?' },
+        { id: '3e2', text: '3E: Enthusiasm - ท่านมีความกระตือรือร้นต่องานอย่างไร?' },
+        { id: '3e3', text: '3E: Execution - ท่านสามารถแปลงแผนไปสู่การปฏิบัติได้อย่างไร?' }
+    ]
+};
+
+var options = [
+    { value: 1, text: 'ต้องปรับปรุงมาก' },
+    { value: 2, text: 'ต้องปรับปรุง' },
+    { value: 3, text: 'ปานกลาง' },
+    { value: 4, text: 'ดี' },
+    { value: 5, text: 'ดีมาก' }
+];
+
+// สร้างแบบทดสอบ
+function renderQuestions(category, containerId) {
+    var container = document.getElementById(containerId);
+    var html = questions[category].map(function(q, index) {
+        return '<div class="question">' +
+               '<p>' + (index + 1) + '. ' + q.text + '</p>' +
+               '<div class="options">' +
+               options.map(function(opt) {
+                   return '<div class="option">' +
+                          '<input type="radio" name="' + q.id + '" value="' + opt.value + '" id="' + q.id + '_' + opt.value + '">' +
+                          '<label for="' + q.id + '_' + opt.value + '">' + opt.value + ' - ' + opt.text + '</label>' +
+                          '</div>';
+               }).join('') +
+               '</div></div>';
+    }).join('');
+    container.innerHTML = html;
+}
+
+renderQuestions('attitude', 'attitudeQuestions');
+renderQuestions('skill', 'skillQuestions');
+renderQuestions('cc', 'ccQuestions');
+renderQuestions('3e3p', '3e3pQuestions');
+
+function submitAssessment() {
+    // รวบรวมคะแนน
+    var scores = {};
+    var allAnswered = true;
+    
+    Object.keys(questions).forEach(function(category) {
+        questions[category].forEach(function(q) {
+            var selected = document.querySelector('input[name="' + q.id + '"]:checked');
+            if (!selected) {
+                allAnswered = false;
+            } else {
+                scores[q.id] = parseInt(selected.value);
+            }
+        });
+    });
+    
+    if (!allAnswered) {
+        alert('กรุณาตอบทุกข้อ');
+        return;
+    }
+    
+    // คำนวณคะแนนรวม
+    var totalScore = Object.values(scores).reduce(function(sum, val) { return sum + val; }, 0);
+    var maxScore = Object.keys(scores).length * 5;
+    var percentage = ((totalScore / maxScore) * 100).toFixed(1);
+    
+    // บันทึกผล
+    var assessment = {
+        applicantId: applicant.id,
+        scores: scores,
+        totalScore: totalScore,
+        maxScore: maxScore,
+        percentage: percentage,
+        submittedAt: new Date().toISOString()
+    };
+    
+    // เก็บใน localStorage
+    var assessments = JSON.parse(localStorage.getItem('assessments') || '[]');
+    assessments.push(assessment);
+    localStorage.setItem('assessments', JSON.stringify(assessments));
+    
+    // อัปเดตสถานะผู้สมัคร
+    applicant.status = 'assessed';
+    applicant.assessmentDate = new Date().toISOString();
+    
+    // เก็บข้อมูลผู้สมัครที่อัปเดต
+    var applicantsData = JSON.parse(localStorage.getItem('applicantsData') || '[]');
+    var index = applicantsData.findIndex(function(x) { return x.id === applicant.id; });
+    if (index >= 0) {
+        applicantsData[index] = applicant;
+    } else {
+        applicantsData.push(applicant);
+    }
+    localStorage.setItem('applicantsData', JSON.stringify(applicantsData));
+    
+    // แสดงข้อความสำเร็จ
+    document.getElementById('assessmentContent').style.display = 'none';
+    document.getElementById('successMessage').style.display = 'block';
+}
+
+function goBack() {
+    window.location.href = 'index.html';
+}
+</script>
 </body>
 </html>
