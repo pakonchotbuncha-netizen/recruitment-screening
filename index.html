@@ -3,324 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>กระบวนการคัดกรองและสัมภาษณ์ตำแหน่งงาน</title>
+    <title>ระบบคัดกรองและสัมภาษณ์ตำแหน่งงาน - Online Version</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
 <body class="bg-gray-50">
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex items-center justify-between">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">🎯</div>
+                <h1 class="text-2xl font-bold text-gray-800">ระบบคัดกรองและสัมภาษณ์</h1>
+                <p class="text-gray-600 mt-2">กระบวนการคัดกรองและสัมภาษณ์ตำแหน่งงาน</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
                 <div>
-                    <h1 class="text-3xl font-bold flex items-center">
-                        <span class="mr-3">🎯</span>
-                        กระบวนการคัดกรองและสัมภาษณ์ตำแหน่งงาน
-                    </h1>
-                    <p class="text-blue-100 mt-1">Recruitment Screening & Interview Process</p>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อผู้ใช้</label>
+                    <input type="text" id="username" required class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
                 </div>
-                <div class="flex items-center space-x-4">
-                    <button onclick="window.location.href='notifications.html'" class="relative bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">
-                        🔔 การแจ้งเตือน
-                        <span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+                    <input type="password" id="password" required class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div id="loginError" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p class="text-red-800 text-sm"></p>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 font-semibold">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <p class="text-sm text-blue-800">
+                    <strong>ข้อมูลการเข้าสู่ระบบ:</strong><br>
+                    Admin: admin / admin123<br>
+                    HR: hr / hr123<br>
+                    Interviewer: interviewer / interview123
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">🎯 ระบบคัดกรองและสัมภาษณ์</h1>
+                        <p class="text-sm text-gray-600">ยินดีต้อนรับ <span id="userName"></span></p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="showNotifications()" class="relative text-gray-600 hover:text-gray-900">
+                            🔔
+                            <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                        </button>
+                        <button onclick="logout()" class="text-red-600 hover:text-red-800 font-medium">
+                            ออกจากระบบ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white border-b">
+            <div class="container mx-auto px-4">
+                <nav class="flex space-x-8">
+                    <button onclick="showTab('dashboard')" class="tab-btn py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium">
+                        📊 Dashboard
                     </button>
-                    <div class="text-right">
-                        <p class="text-sm text-blue-100">Web PP7 - P1 แสวงหา</p>
-                        <p class="text-xs text-blue-200">Version 1.0</p>
-                    </div>
-                </div>
+                    <button onclick="showTab('applicants')" class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        👥 ผู้สมัคร
+                    </button>
+                    <button onclick="showTab('assessment')" class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        📝 แบบทดสอบ
+                    </button>
+                    <button onclick="showTab('interview')" class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        🎤 สัมภาษณ์
+                    </button>
+                    <button onclick="showTab('reports')" class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        📈 รายงาน
+                    </button>
+                </nav>
             </div>
         </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        <!-- Process Overview -->
-        <section class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <span class="bg-blue-500 text-white rounded-full w-10 h-10 flex items-center justify-center mr-3 text-lg">📋</span>
-                ภาพรวมกระบวนการ 9 ขั้นตอน
-            </h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Step 1 -->
-                <div class="process-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" data-step="1" onclick="window.location.href='applicants.html'">
-                    <div class="flex items-start mb-4">
-                        <div class="step-number bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl mr-4">1</div>
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800">รับข้อมูลผู้สมัคร</h3>
-                            <p class="text-sm text-gray-600 mt-1">ดึงข้อมูลจาก Google Sheet</p>
+        <!-- Content Area -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Dashboard Tab -->
+            <div id="dashboardTab" class="tab-content">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">ผู้สมัครทั้งหมด</p>
+                                <p class="text-3xl font-bold text-gray-900" id="totalApplicants">0</p>
+                            </div>
+                            <div class="text-4xl">👥</div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">ผู้สมัครทั้งหมด</span>
-                        <span class="font-bold text-blue-600" id="totalApplicants">0</span>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">ผู้สมัครใหม่</p>
+                                <p class="text-3xl font-bold text-blue-600" id="newApplicants">0</p>
+                            </div>
+                            <div class="text-4xl">🆕</div>
+                        </div>
                     </div>
-                    <div class="mt-3">
-                        <div class="bg-gray-200 rounded-full h-2">
-                            <div class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">ทำแบบทดสอบแล้ว</p>
+                                <p class="text-3xl font-bold text-purple-600" id="assessedApplicants">0</p>
+                            </div>
+                            <div class="text-4xl">📝</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">สัมภาษณ์แล้ว</p>
+                                <p class="text-3xl font-bold text-green-600" id="interviewedApplicants">0</p>
+                            </div>
+                            <div class="text-4xl">🎤</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Step 2 -->
-                <div class="process-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" data-step="2" onclick="window.location.href='applicants.html'">
-                    <div class="flex items-start mb-4">
-                        <div class="step-number bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl mr-4">2</div>
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800">คัดเลือกเบื้องต้น</h3>
-                            <p class="text-sm text-gray-600 mt-1">ตรวจสอบคุณสมบัติพื้นฐาน</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">ผ่านคัดเลือก</span>
-                        <span class="font-bold text-green-600" id="screenedCount">0</span>
-                    </div>
-                    <div class="mt-3">
-                        <div class="bg-gray-200 rounded-full h-2">
-                            <div class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3 -->
-                <div class="process-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" data-step="3" onclick="window.location.href='assessment.html'">
-                    <div class="flex items-start mb-4">
-                        <div class="step-number bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl mr-4">3</div>
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800">แบบทดสอบออนไลน์</h3>
-                            <p class="text-sm text-gray-600 mt-1">ทัศนคติ ทักษะ CC 3E3P</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">ทำแบบทดสอบ</span>
-                        <span class="font-bold text-purple-600" id="assessmentCount">0</span>
-                    </div>
-                    <div class="mt-3">
-                        <div class="bg-gray-200 rounded-full h-2">
-                            <div class="bg-purple-500 h-2 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 4 -->
-                <div class="process-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" data-step="4" onclick="window.location.href='ai-analysis.html'">
-                    <div class="flex items-start mb-4">
-                        <div class="step-number bg-orange-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl mr-4">4</div>
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800">AI วิเคราะห์</h3>
-                            <p class="text-sm text-gray-600 mt-1">วิเคราะห์คุณสมบัติอัตโนมัติ</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">AI วิเคราะห์แล้ว</span>
-                        <span class="font-bold text-orange-600" id="aiAnalysisCount">0</span>
-                    </div>
-                    <div class="mt-3">
-                        <div class="bg-gray-200 rounded-full h-2">
-                            <div class="bg-orange-500 h-2 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 5 -->
-                <div class="process-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" data-step="5" onclick="window.location.href='interview.html'">
-                    <div class="flex items-start mb-4">
-                        <div class="step-number bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl mr-4">5</div>
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800">คัดเลือกเข้าสัมภาษณ์</h3>
-                            <p class="text-sm text-gray-600 mt-1">ผู้ปฏิบัติงานคัดเลือก</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">ได้เข้าสัมภาษณ์</span>
-                        <span class="font-bold text-green-600" id="interviewSelectedCount">0</span>
-                    </div>
-                    <div class="mt-3">
-                        <div class="bg-gray-200 rounded-full h-2">
-                            <div class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 6 -->
-                <div class="process-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" data-step="6" onclick="window.location.href='interview.html'">
-                    <div class="flex items-start mb-4">
-                        <div class="step-number bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl mr-4">6</div>
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800">ตอบรับการสัมภาษณ์</h3>
-                            <p class="text-sm text-gray-600 mt-1">ผู้สมัครยืนยันเข้าร่วม</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">ตอบรับแล้ว</span>
-                        <span class="font-bold text-green-600" id="interviewConfirmedCount">0</span>
-                    </div>
-                    <div class="mt-3">
-                        <div class="bg-gray-200 rounded-full h-2">
-                            <div class="bg-green-500 h-2 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 7 -->
-                <div class="process-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" data-step="7" onclick="window.location.href='interview.html'">
-                    <div class="flex items-start mb-4">
-                        <div class="step-number bg-purple-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl mr-4">7</div>
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800">AI สร้างแบบสัมภาษณ์</h3>
-                            <p class="text-sm text-gray-600 mt-1">สร้างคำถามอัตโนมัติ</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">แบบสัมภาษณ์สร้างแล้ว</span>
-                        <span class="font-bold text-purple-600" id="interviewFormCount">0</span>
-                    </div>
-                    <div class="mt-3">
-                        <div class="bg-gray-200 rounded-full h-2">
-                            <div class="bg-purple-500 h-2 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 8 -->
-                <div class="process-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" data-step="8" onclick="window.location.href='interview.html'">
-                    <div class="flex items-start mb-4">
-                        <div class="step-number bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl mr-4">8</div>
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800">กระบวนการสัมภาษณ์</h3>
-                            <p class="text-sm text-gray-600 mt-1">ผู้สัมภาษณ์ 5 คนให้คะแนน</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">สัมภาษณ์แล้ว</span>
-                        <span class="font-bold text-red-600" id="interviewedCount">0</span>
-                    </div>
-                    <div class="mt-3">
-                        <div class="bg-gray-200 rounded-full h-2">
-                            <div class="bg-red-500 h-2 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 9 -->
-                <div class="process-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer" data-step="9" onclick="window.location.href='summary.html'">
-                    <div class="flex items-start mb-4">
-                        <div class="step-number bg-indigo-500 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-xl mr-4">9</div>
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800">AI สรุปผล</h3>
-                            <p class="text-sm text-gray-600 mt-1">สรุปผลและให้ความเห็น</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="text-gray-500">สรุปผลแล้ว</span>
-                        <span class="font-bold text-indigo-600" id="summaryCount">0</span>
-                    </div>
-                    <div class="mt-3">
-                        <div class="bg-gray-200 rounded-full h-2">
-                            <div class="bg-indigo-500 h-2 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-4">📊 สถิติกระบวนการ</h2>
+                    <div id="processStats" class="space-y-4"></div>
                 </div>
             </div>
-        </section>
 
-        <!-- Quick Actions -->
-        <section class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <span class="bg-green-500 text-white rounded-full w-10 h-10 flex items-center justify-center mr-3 text-lg">⚡</span>
-                การดำเนินการด่วน
-            </h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <button onclick="loadApplicants()" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-lg shadow-md transition-colors">
-                    <span class="block text-2xl mb-2">📥</span>
-                    ดึงข้อมูลผู้สมัคร
-                </button>
-                <button onclick="startScreening()" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-4 px-6 rounded-lg shadow-md transition-colors">
-                    <span class="block text-2xl mb-2">✅</span>
-                    เริ่มคัดเลือก
-                </button>
-                <button onclick="viewAIReports()" class="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-4 px-6 rounded-lg shadow-md transition-colors">
-                    <span class="block text-2xl mb-2">🤖</span>
-                    ดูรายงาน AI
-                </button>
-                <button onclick="scheduleInterviews()" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-4 px-6 rounded-lg shadow-md transition-colors">
-                    <span class="block text-2xl mb-2">📅</span>
-                    จัดการสัมภาษณ์
-                </button>
-            </div>
-        </section>
-
-        <!-- Recent Activity -->
-        <section>
-            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <span class="bg-gray-500 text-white rounded-full w-10 h-10 flex items-center justify-center mr-3 text-lg">📊</span>
-                กิจกรรมล่าสุด
-            </h2>
-
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div id="activityList" class="space-y-4">
-                    <p class="text-gray-500 text-center py-8">ยังไม่มีกิจกรรม</p>
+            <!-- Applicants Tab -->
+            <div id="applicantsTab" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold">👥 รายชื่อผู้สมัคร</h2>
+                        <div class="flex gap-2">
+                            <button onclick="showAddApplicantModal()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                                + เพิ่มผู้สมัคร
+                            </button>
+                            <button onclick="exportData()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                                📤 Export
+                            </button>
+                        </div>
+                    </div>
+                    <div id="applicantsList" class="space-y-4"></div>
                 </div>
             </div>
-        </section>
-    </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-6 mt-12">
-        <div class="container mx-auto px-4 text-center">
-            <p class="text-sm">กระบวนการคัดกรองและสัมภาษณ์ตำแหน่งงาน - Web PP7</p>
-            <p class="text-xs text-gray-400 mt-2">Developed by KiloClaw 🦾 | Executive Sponsor: PKG</p>
-        </div>
-    </footer>
+            <!-- Assessment Tab -->
+            <div id="assessmentTab" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-6">📝 แบบทดสอบ</h2>
+                    <p class="text-gray-600">เลือกผู้สมัครจากหน้ารายชื่อเพื่อเริ่มแบบทดสอบ</p>
+                </div>
+            </div>
 
-    <script src="js/pdpa-compliance.js"></script>
-    <script src="js/data-store.js"></script>
-    <script src="js/seed-data.js"></script>
-    <script src="js/notification-system.js"></script>
+            <!-- Interview Tab -->
+            <div id="interviewTab" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-6">🎤 การสัมภาษณ์</h2>
+                    <p class="text-gray-600">จัดการการสัมภาษณ์และให้คะแนน</p>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reportsTab" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-6">📈 รายงาน</h2>
+                    <p class="text-gray-600">รายงานสรุปผลการคัดกรองและสัมภาษณ์</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
     <script>
-        // Update stats on load
-        document.addEventListener('DOMContentLoaded', () => {
-            const stats = store.getStats();
-            document.getElementById('totalApplicants').textContent = stats.total;
-            document.getElementById('screenedCount').textContent = stats.screened;
-            document.getElementById('assessmentCount').textContent = stats.assessed;
-            document.getElementById('aiAnalysisCount').textContent = stats.assessed;
-            document.getElementById('interviewSelectedCount').textContent = stats.interviewSelected;
-            document.getElementById('interviewConfirmedCount').textContent = stats.interviewSelected;
-            document.getElementById('interviewFormCount').textContent = stats.interviewed;
-            document.getElementById('interviewedCount').textContent = stats.interviewed;
-            document.getElementById('summaryCount').textContent = stats.accepted + stats.rejected;
+        // Data Store
+        const store = {
+            getApplicants() {
+                return JSON.parse(localStorage.getItem('applicants') || '[]');
+            },
+            saveApplicant(data) {
+                const applicants = this.getApplicants();
+                data.id = data.id || 'APP-' + Date.now();
+                data.createdAt = data.createdAt || new Date().toISOString();
+                data.status = data.status || 'new';
+                applicants.push(data);
+                localStorage.setItem('applicants', JSON.stringify(applicants));
+                return data;
+            },
+            getStats() {
+                const applicants = this.getApplicants();
+                return {
+                    total: applicants.length,
+                    new: applicants.filter(a => a.status === 'new').length,
+                    screened: applicants.filter(a => a.status === 'screened').length,
+                    assessed: applicants.filter(a => a.status === 'assessed').length,
+                    interview_selected: applicants.filter(a => a.status === 'interview_selected').length,
+                    interviewed: applicants.filter(a => a.status === 'interviewed').length,
+                    accepted: applicants.filter(a => a.status === 'accepted').length,
+                    rejected: applicants.filter(a => a.status === 'rejected').length
+                };
+            }
+        };
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
             
-            // แสดง Notification Badge
-            const notifStats = notification.getStats();
-            const notifBadge = document.getElementById('notificationBadge');
-            if (notifBadge && notifStats.unread > 0) {
-                notifBadge.textContent = notifStats.unread;
-                notifBadge.classList.remove('hidden');
+            const users = {
+                'admin': { password: 'admin123', role: 'admin', name: 'ผู้ดูแลระบบ' },
+                'hr': { password: 'hr123', role: 'hr', name: 'ฝ่ายบุคคล' },
+                'interviewer': { password: 'interview123', role: 'interviewer', name: 'ผู้สัมภาษณ์' }
+            };
+            
+            if (users[username] && users[username].password === password) {
+                localStorage.setItem('session', JSON.stringify({
+                    username: username,
+                    role: users[username].role,
+                    name: users[username].name
+                }));
+                showMainApp(users[username]);
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+                document.getElementById('loginError').querySelector('p').textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
             }
         });
-        
-        // แสดง Notification Center
-        function showNotificationCenter() {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-            modal.innerHTML = `
-                <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-                    <div class="p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h2 class="text-2xl font-bold">🔔 การแจ้งเตือน</h2>
-                            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-2xl">✕</button>
+
+        function showMainApp(user) {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userName').textContent = user.name;
+            loadDashboard();
+        }
+
+        function logout() {
+            localStorage.removeItem('session');
+            location.reload();
+        }
+
+        // Check session
+        document.addEventListener('DOMContentLoaded', () => {
+            const session = localStorage.getItem('session');
+            if (session) {
+                showMainApp(JSON.parse(session));
+            }
+        });
+
+        // Tab Navigation
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            document.getElementById(tabName + 'Tab').classList.remove('hidden');
+            event.target.classList.remove('border-transparent', 'text-gray-500');
+            event.target.classList.add('border-blue-500', 'text-blue-600');
+            
+            if (tabName === 'dashboard') loadDashboard();
+            if (tabName === 'applicants') loadApplicants();
+        }
+
+        // Dashboard
+        function loadDashboard() {
+            const stats = store.getStats();
+            document.getElementById('totalApplicants').textContent = stats.total;
+            document.getElementById('newApplicants').textContent = stats.new;
+            document.getElementById('assessedApplicants').textContent = stats.assessed;
+            document.getElementById('interviewedApplicants').textContent = stats.interviewed;
+            
+            const processSteps = [
+                { name: 'ผู้สมัครใหม่', count: stats.new, color: 'blue' },
+                { name: 'ผ่านการคัดเลือก', count: stats.screened, color: 'green' },
+                { name: 'ทำแบบทดสอบ', count: stats.assessed, color: 'purple' },
+                { name: 'ได้เข้าสัมภาษณ์', count: stats.interview_selected, color: 'orange' },
+                { name: 'สัมภาษณ์แล้ว', count: stats.interviewed, color: 'red' },
+                { name: 'รับเข้าทำงาน', count: stats.accepted, color: 'green' },
+                { name: 'ไม่ผ่าน', count: stats.rejected, color: 'gray' }
+            ];
+            
+            document.getElementById('processStats').innerHTML = processSteps.map(step => `
+                <div class="flex items-center justify-between p-4 bg-${step.color}-50 rounded-lg">
+                    <span class="font-medium text-${step.color}-900">${step.name}</span>
+                    <span class="text-2xl font-bold text-${step.color}-600">${step.count}</span>
+                </div>
+            `).join('');
+        }
+
+        // Applicants
+        function loadApplicants() {
+            const applicants = store.getApplicants();
+            
+            if (applicants.length === 0) {
+                document.getElementById('applicantsList').innerHTML = '<p class="text-gray-500 text-center py-8">ยังไม่มีข้อมูลผู้สมัคร</p>';
+                return;
+            }
+            
+            document.getElementById('applicantsList').innerHTML = applicants.map(a => `
+                <div class="border rounded-lg p-4 hover:bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg">${a.fullName || '-'}</h3>
+                            <p class="text-gray-600">${a.position || '-'} | ${a.department || '-'}</p>
+                            <p class="text-sm text-gray-500">${a.email || '-'} | ${a.phone || '-'}</p>
                         </div>
-                        <div id="notificationList">
-                            ${notification.renderNotificationCenter()}
+                        <div class="text-right">
+                            <span class="px-3 py-1 rounded-full text-sm ${getStatusClass(a.status)}">${getStatusText(a.status)}</span>
+                            <p class="text-xs text-gray-400 mt-2">${formatDate(a.applyDate)}</p>
                         </div>
                     </div>
                 </div>
-            `;
-            document.body.appendChild(modal);
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'new': 'bg-blue-100 text-blue-800',
+                'screened': 'bg-green-100 text-green-800',
+                'assessed': 'bg-purple-100 text-purple-800',
+                'interview_selected': 'bg-orange-100 text-orange-800',
+                'interviewed': 'bg-red-100 text-red-800',
+                'accepted': 'bg-green-100 text-green-800',
+                'rejected': 'bg-gray-100 text-gray-800'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'new': 'ใหม่',
+                'screened': 'ผ่านการคัดเลือก',
+                'assessed': 'ทำแบบทดสอบแล้ว',
+                'interview_selected': 'ได้เข้าสัมภาษณ์',
+                'interviewed': 'สัมภาษณ์แล้ว',
+                'accepted': 'รับเข้าทำงาน',
+                'rejected': 'ไม่ผ่าน'
+            };
+            return texts[status] || status;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function showAddApplicantModal() {
+            const fullName = prompt('ชื่อ-นามสกุล:');
+            if (!fullName) return;
+            
+            const position = prompt('ตำแหน่ง:');
+            const email = prompt('Email:');
+            const phone = prompt('เบอร์โทร:');
+            const department = prompt('แผนก:');
+            
+            store.saveApplicant({ fullName, position, email, phone, department, status: 'new' });
+            loadApplicants();
+            loadDashboard();
+            alert('เพิ่มผู้สมัครสำเร็จ!');
+        }
+
+        function exportData() {
+            const data = store.getApplicants();
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `applicants_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function showNotifications() {
+            alert('ระบบแจ้งเตือน - ยังไม่มีแจ้งเตือนใหม่');
         }
     </script>
 </body>
