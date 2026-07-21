@@ -240,6 +240,30 @@ Interviewer: interviewer / interview123
 <li><strong>Step 8:</strong> กระบวนการสัมภาษณ์ ผู้สัมภาษณ์ 5 คนให้คะแนน</li>
 </ol>
 </div>
+<div style="margin-top:30px;padding-top:20px;border-top:2px solid #ddd">
+<h3>📝 แบบฟอร์มให้คะแนนสัมภาษณ์</h3>
+<div style="margin-top:15px">
+<label style="display:block;margin-bottom:10px;font-weight:600">เลือกผู้สมัคร:</label>
+<select id="interviewApplicantSelect" onchange="loadInterviewForm()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:5px;margin-bottom:20px">
+<option value="">-- เลือกผู้สมัคร --</option>
+</select>
+<div id="interviewForm" style="display:none">
+<div style="background:#f5f5f5;padding:20px;border-radius:5px;margin-bottom:20px">
+<h4 style="margin-top:0">ข้อมูลผู้สมัคร</h4>
+<p><strong>ชื่อ:</strong> <span id="interviewName"></span></p>
+<p><strong>ตำแหน่ง:</strong> <span id="interviewPosition"></span></p>
+<p><strong>วันที่สมัคร:</strong> <span id="interviewDate"></span></p>
+</div>
+<h4>ให้คะแนน (1-5)</h4>
+<div id="interviewQuestions" style="margin-top:15px"></div>
+<div style="margin-top:20px">
+<label style="display:block;margin-bottom:10px;font-weight:600">ความคิดเห็นเพิ่มเติม:</label>
+<textarea id="interviewComment" rows="4" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:5px" placeholder="พิมพ์ความคิดเห็น..."></textarea>
+</div>
+<button onclick="submitInterviewScore()" style="margin-top:15px;padding:12px 24px;background:#4caf50;color:white;border:none;border-radius:5px;cursor:pointer;font-weight:600">✅ ส่งคะแนน</button>
+</div>
+</div>
+</div>
 </div>
 </div>
 
@@ -420,7 +444,122 @@ document.querySelectorAll('.tab-content').forEach(function(el){el.classList.add(
 document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
 document.getElementById(tabName+'Tab').classList.remove('hidden');
 btn.classList.add('active');
+if(tabName==='interview'){
+loadInterviewApplicantList();
+}
 render();
+}
+
+// Interview Form Functions
+var interviewQuestions=[
+{id:1,question:'ทักษะการสื่อสารและการนำเสนอ',category:'ทักษะ'},
+{id:2,question:'ความสามารถในการแก้ปัญหา',category:'ทักษะ'},
+{id:3,question:'ทัศนคติและการทำงานเป็นทีม',category:'ทัศนคติ'},
+{id:4,question:'ความรู้ในสายงาน',category:'ทักษะ'},
+{id:5,question:'ความกระตือรือร้นและแรงจูงใจ',category:'ทัศนคติ'},
+{id:6,question:'ความสามารถในการเรียนรู้สิ่งใหม่',category:'ทักษะ'},
+{id:7,question:'ความเป็นผู้นำ',category:'CC'},
+{id:8,question:'ความอดทนและ压力下การทำงาน',category:'CC'}
+];
+
+function loadInterviewApplicantList(){
+var select=document.getElementById('interviewApplicantSelect');
+var applicants=currentData.applicants.filter(function(a){return a.status==='interview_selected'||a.status==='screened';});
+select.innerHTML='<option value="">-- เลือกผู้สมัคร --</option>';
+applicants.forEach(function(a){
+var option=document.createElement('option');
+option.value=a.id;
+option.textContent=a.fullName+' - '+a.position;
+select.appendChild(option);
+});
+}
+
+function loadInterviewForm(){
+var applicantId=document.getElementById('interviewApplicantSelect').value;
+if(!applicantId){
+document.getElementById('interviewForm').style.display='none';
+return;
+}
+var applicant=currentData.applicants.find(function(a){return a.id===applicantId;});
+if(!applicant)return;
+
+document.getElementById('interviewName').textContent=applicant.fullName;
+document.getElementById('interviewPosition').textContent=applicant.position;
+document.getElementById('interviewDate').textContent=formatDate(applicant.applyDate);
+
+var questionsDiv=document.getElementById('interviewQuestions');
+questionsDiv.innerHTML='';
+interviewQuestions.forEach(function(q){
+var div=document.createElement('div');
+div.style.cssText='background:white;padding:15px;margin-bottom:10px;border-radius:5px;border:1px solid #ddd';
+div.innerHTML='<p style="margin:0 0 10px 0;font-weight:600">'+q.question+' <span style="color:#999;font-size:12px">('+q.category+')</span></p>'+
+'<div style="display:flex;gap:10px">'+
+[1,2,3,4,5].map(function(score){
+return '<label style="display:flex;align-items:center;gap:5px;cursor:pointer">'+
+'<input type="radio" name="q'+q.id+'" value="'+score+'" required>'+
+'<span>'+score+'</span></label>';
+}).join('')+'</div>';
+questionsDiv.appendChild(div);
+});
+
+document.getElementById('interviewForm').style.display='block';
+}
+
+function submitInterviewScore(){
+var applicantId=document.getElementById('interviewApplicantSelect').value;
+if(!applicantId){
+alert('กรุณาเลือกผู้สมัคร');
+return;
+}
+
+var scores={};
+var allAnswered=true;
+interviewQuestions.forEach(function(q){
+var selected=document.querySelector('input[name="q'+q.id+'"]:checked');
+if(!selected){
+allAnswered=false;
+}else{
+scores[q.id]=parseInt(selected.value);
+}
+});
+
+if(!allAnswered){
+alert('กรุณาให้คะแนนทุกข้อ');
+return;
+}
+
+var comment=document.getElementById('interviewComment').value;
+var interviewer=JSON.parse(localStorage.getItem('session')).username;
+
+var interview={
+applicantId:applicantId,
+interviewer:interviewer,
+scores:scores,
+comment:comment,
+timestamp:new Date().toISOString()
+};
+
+if(!currentData.interviews){
+currentData.interviews=[];
+}
+currentData.interviews.push(interview);
+
+// Update applicant status
+var applicant=currentData.applicants.find(function(a){return a.id===applicantId;});
+if(applicant){
+applicant.status='interviewed';
+}
+
+saveData().then(function(ok){
+if(ok){
+alert('✅ ส่งคะแนนสำเร็จ!');
+document.getElementById('interviewForm').style.display='none';
+document.getElementById('interviewApplicantSelect').value='';
+render();
+}else{
+alert('❌ บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง');
+}
+});
 }
 
 // Check session on load
