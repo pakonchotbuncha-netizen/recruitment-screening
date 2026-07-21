@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://script.google.com;">
+    <title>เข้าสู่ระบบ - กระบวนการคัดกรองและสัมภาษณ์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto px-4 max-w-md">
+        <div class="bg-white rounded-lg shadow-xl p-8">
+            <!-- Logo & Title -->
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">🔐</div>
+                <h1 class="text-2xl font-bold text-gray-800">เข้าสู่ระบบ</h1>
+                <p class="text-gray-600 mt-2">กระบวนการคัดกรองและสัมภาษณ์ตำแหน่งงาน</p>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อผู้ใช้</label>
+                    <input type="text" id="username" required class="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="กรอกชื่อผู้ใช้">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+                    <input type="password" id="password" required class="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="กรอกรหัสผ่าน">
+                </div>
+
+                <div id="errorMessage" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p class="text-red-800 text-sm"></p>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 font-semibold transition-colors">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
+
+            <!-- Info -->
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <p class="text-sm text-blue-800">
+                    <strong>ℹ️ ข้อมูลการเข้าสู่ระบบ:</strong><br>
+                    ผู้ดูแลระบบ: admin / admin123<br>
+                    HR: hr / hr123<br>
+                    ผู้สัมภาษณ์: interviewer / interview123
+                </p>
+            </div>
+
+            <!-- Security Info -->
+            <div class="mt-4 text-center text-xs text-gray-500">
+                <p>🔒 ระบบมีการรักษาความปลอดภัยตามมาตรฐาน PDPA</p>
+                <p class="mt-1">หากพบปัญหาการเข้าสู่ระบบ กรุณาติดต่อผู้ดูแลระบบ</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/pdpa-compliance.js"></script>
+    <script src="js/security.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            try {
+                // Show loading
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'กำลังเข้าสู่ระบบ...';
+                
+                // Login
+                await security.login(username, password);
+                
+                // Redirect to main page
+                window.location.href = 'index.html';
+                
+            } catch (error) {
+                errorMessage.classList.remove('hidden');
+                errorMessage.querySelector('p').textContent = error.message;
+                
+                // Reset button
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'เข้าสู่ระบบ';
+            }
+        });
+    </script>
+</body>
+</html>
