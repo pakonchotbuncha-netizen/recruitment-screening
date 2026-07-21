@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แบบทดสอบ - กระบวนการคัดกรองและสัมภาษณ์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">📝 แบบทดสอบผู้สมัคร</h1>
+                    <p class="text-purple-100 mt-1">Step 3: ประเมินทัศนคติ ทักษะ CC และ 3E3P</p>
+                </div>
+                <a href="applicants.html" class="bg-white text-purple-600 px-4 py-2 rounded-lg hover:bg-purple-50">
+                    ← กลับหน้ารายชื่อ
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Applicant Info -->
+        <div id="applicantInfo" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">ข้อมูลผู้สมัคร</h2>
+            <div id="applicantDetails" class="text-gray-600">
+                กรุณาเลือกผู้สมัครจากหน้ารายชื่อก่อน
+            </div>
+        </div>
+
+        <!-- Assessment Tabs -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="border-b mb-4">
+                <nav class="flex gap-4">
+                    <button onclick="showTab('attitude')" class="tab-btn px-4 py-2 font-medium text-purple-600 border-b-2 border-purple-600" data-tab="attitude">
+                        🎯 ทัศนคติ
+                    </button>
+                    <button onclick="showTab('skill')" class="tab-btn px-4 py-2 font-medium text-gray-500 hover:text-gray-700" data-tab="skill">
+                        💡 ทักษะ
+                    </button>
+                    <button onclick="showTab('cc')" class="tab-btn px-4 py-2 font-medium text-gray-500 hover:text-gray-700" data-tab="cc">
+                        🏢 ทุนองค์กร (CC)
+                    </button>
+                    <button onclick="showTab('3e3p')" class="tab-btn px-4 py-2 font-medium text-gray-500 hover:text-gray-700" data-tab="3e3p">
+                        📊 3E3P
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Attitude Tab -->
+            <div id="attitudeTab" class="tab-content">
+                <h3 class="text-lg font-bold mb-4">แบบทดสอบทัศนคติ</h3>
+                <div id="attitudeQuestions" class="space-y-6">
+                    <!-- Questions will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Skill Tab -->
+            <div id="skillTab" class="tab-content hidden">
+                <h3 class="text-lg font-bold mb-4">แบบทดสอบทักษะ</h3>
+                <div id="skillQuestions" class="space-y-6">
+                    <!-- Questions will be rendered here -->
+                </div>
+            </div>
+
+            <!-- CC Tab -->
+            <div id="ccTab" class="tab-content hidden">
+                <h3 class="text-lg font-bold mb-4">แบบทดสอบทุนองค์กร (Core Competency)</h3>
+                <div id="ccQuestions" class="space-y-6">
+                    <!-- Questions will be rendered here -->
+                </div>
+            </div>
+
+            <!-- 3E3P Tab -->
+            <div id="3e3pTab" class="tab-content hidden">
+                <h3 class="text-lg font-bold mb-4">แบบทดสอบ 3E3P</h3>
+                <div id="3e3pQuestions" class="space-y-6">
+                    <!-- Questions will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <button onclick="submitAssessment()" class="w-full bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 font-semibold text-lg">
+                ✅ ส่งคำตอบ
+            </button>
+        </div>
+    </main>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/assessment.js"></script>
+</body>
+</html>

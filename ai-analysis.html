@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI วิเคราะห์ - กระบวนการคัดกรองและสัมภาษณ์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-orange-600 to-red-700 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">🤖 AI วิเคราะห์คุณสมบัติ</h1>
+                    <p class="text-orange-100 mt-1">Step 4: AI ประเมินและวิเคราะห์ผู้สมัคร</p>
+                </div>
+                <a href="applicants.html" class="bg-white text-orange-600 px-4 py-2 rounded-lg hover:bg-orange-50">
+                    ← กลับหน้ารายชื่อ
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Applicant Info -->
+        <div id="applicantInfo" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">ข้อมูลผู้สมัคร</h2>
+            <div id="applicantDetails" class="text-gray-600">
+                กำลังโหลด...
+            </div>
+        </div>
+
+        <!-- Assessment Results -->
+        <div id="assessmentResults" class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">ผลการทดสอบ</h2>
+            <div id="scoresDisplay" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Scores will be rendered here -->
+            </div>
+        </div>
+
+        <!-- AI Analysis -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <span class="bg-orange-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2">🤖</span>
+                AI วิเคราะห์
+            </h2>
+            
+            <button onclick="generateAIAnalysis()" id="analyzeBtn" class="w-full bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 font-semibold mb-4">
+                🧠 เริ่มการวิเคราะห์ด้วย AI
+            </button>
+
+            <div id="aiAnalysis" class="hidden">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-6">
+                    <h3 class="font-bold text-lg mb-3 text-orange-900">📊 สรุปผลการวิเคราะห์</h3>
+                    <div id="analysisContent" class="space-y-4 text-gray-800">
+                        <!-- Analysis will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex gap-4">
+                <button onclick="selectForInterview()" class="flex-1 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 font-semibold">
+                    ✅ คัดเลือกเข้าสัมภาษณ์ (Step 5)
+                </button>
+                <button onclick="rejectApplicant()" class="flex-1 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 font-semibold">
+                    ❌ ไม่ผ่าน
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/ai-analysis.js"></script>
+</body>
+</html>

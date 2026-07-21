@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายชื่อผู้สมัคร - กระบวนการคัดกรองและสัมภาษณ์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold">📋 รายชื่อผู้สมัคร</h1>
+                    <p class="text-blue-100 mt-1">Step 1-2: นำเข้าข้อมูลและคัดเลือกเบื้องต้น</p>
+                </div>
+                <a href="index.html" class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50">
+                    ← กลับหน้าหลัก
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- Import Section -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <span class="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">1</span>
+                นำเข้าข้อมูลผู้สมัคร
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">อัพโหลดไฟล์ Excel/CSV</label>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" class="w-full border rounded-lg px-4 py-2">
+                </div>
+                <div class="flex items-end">
+                    <button onclick="downloadTemplate()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
+                        📥 ดาวน์โหลด Template
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p class="text-sm text-blue-800">
+                    <strong>💡 คำแนะนำ:</strong> อัพโหลดไฟล์ Excel หรือ CSV ที่มีข้อมูลผู้สมัคร ระบบจะนำเข้าข้อมูลอัตโนมัติ
+                </p>
+            </div>
+        </section>
+
+        <!-- Manual Add -->
+        <section class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <span class="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">2</span>
+                เพิ่มผู้สมัครใหม่ (Manual)
+            </h2>
+
+            <form id="applicantForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อ-นามสกุล *</label>
+                    <input type="text" id="fullName" required class="w-full border rounded-lg px-4 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ตำแหน่งที่สมัคร *</label>
+                    <input type="text" id="position" required class="w-full border rounded-lg px-4 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="email" class="w-full border rounded-lg px-4 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">เบอร์โทร</label>
+                    <input type="tel" id="phone" class="w-full border rounded-lg px-4 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">แผนก</label>
+                    <input type="text" id="department" class="w-full border rounded-lg px-4 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">วันที่สมัคร</label>
+                    <input type="date" id="applyDate" class="w-full border rounded-lg px-4 py-2">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">หมายเหตุ</label>
+                    <textarea id="notes" rows="2" class="w-full border rounded-lg px-4 py-2"></textarea>
+                </div>
+                <div class="md:col-span-2">
+                    <button type="submit" class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600">
+                        ✅ เพิ่มผู้สมัคร
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Applicants List -->
+        <section class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold">รายชื่อผู้สมัครทั้งหมด</h2>
+                <div class="flex gap-2">
+                    <button onclick="exportData()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 text-sm">
+                        📤 Export
+                    </button>
+                    <button onclick="clearAll()" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 text-sm">
+                        🗑️ ล้างข้อมูลทั้งหมด
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter -->
+            <div class="mb-4 flex gap-2">
+                <select id="statusFilter" onchange="renderApplicants()" class="border rounded-lg px-4 py-2">
+                    <option value="all">ทุกสถานะ</option>
+                    <option value="new">ใหม่</option>
+                    <option value="screened">ผ่านการคัดเลือก</option>
+                    <option value="assessed">ทำแบบทดสอบแล้ว</option>
+                    <option value="interview_selected">ได้เข้าสัมภาษณ์</option>
+                    <option value="interviewed">สัมภาษณ์แล้ว</option>
+                    <option value="accepted">รับเข้าทำงาน</option>
+                    <option value="rejected">ไม่ผ่าน</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="ค้นหาชื่อ/ตำแหน่ง..." onkeyup="renderApplicants()" class="flex-1 border rounded-lg px-4 py-2">
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="px-4 py-2 text-left">ชื่อ-นามสกุล</th>
+                            <th class="px-4 py-2 text-left">ตำแหน่ง</th>
+                            <th class="px-4 py-2 text-left">แผนก</th>
+                            <th class="px-4 py-2 text-left">วันที่สมัคร</th>
+                            <th class="px-4 py-2 text-left">สถานะ</th>
+                            <th class="px-4 py-2 text-center">การดำเนินการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applicantsTable">
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                                ยังไม่มีข้อมูลผู้สมัคร
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-4 text-sm text-gray-600">
+                แสดง <span id="showingCount">0</span> จาก <span id="totalCount">0</span> รายการ
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for Details -->
+    <div id="detailModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold">รายละเอียดผู้สมัคร</h3>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">✕</button>
+                </div>
+                <div id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data-store.js"></script>
+    <script src="js/seed-data.js"></script>
+    <script src="js/applicants.js"></script>
+</body>
+</html>
