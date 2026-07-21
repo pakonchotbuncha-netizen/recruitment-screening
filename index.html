@@ -157,6 +157,11 @@ Interviewer: interviewer / interview123
 <option value="accepted">✅ รับเข้าทำงาน</option>
 <option value="rejected">❌ ไม่ผ่าน</option>
 </select>
+<select id="sortBy" onchange="render()" style="padding:8px 15px;border:1px solid #ddd;border-radius:5px">
+<option value="newest">📅 ล่าสุดก่อน</option>
+<option value="oldest">📅 เก่าสุดก่อน</option>
+<option value="name">🔤 ตามชื่อ</option>
+</select>
 <input type="text" id="searchInput" onkeyup="render()" placeholder="🔍 ค้นหา..." style="padding:8px 15px;border:1px solid #ddd;border-radius:5px">
 <button onclick="addApplicant()" class="btn-add">+ เพิ่มผู้สมัคร</button>
 </div>
@@ -424,6 +429,7 @@ else badge.classList.add('sync-error');
 function render(){
 var a=currentData.applicants||[];
 var statusFilter=document.getElementById('statusFilter').value;
+var sortBy=document.getElementById('sortBy').value;
 var searchInput=document.getElementById('searchInput').value.toLowerCase();
 
 // Filter
@@ -435,6 +441,15 @@ a=a.filter(function(x){
 return (x.fullName||'').toLowerCase().includes(searchInput)||
 (x.position||'').toLowerCase().includes(searchInput);
 });
+}
+
+// Sort
+if(sortBy==='newest'){
+a.sort(function(x,y){return new Date(y.applyDate||0)-new Date(x.applyDate||0);});
+}else if(sortBy==='oldest'){
+a.sort(function(x,y){return new Date(x.applyDate||0)-new Date(y.applyDate||0);});
+}else if(sortBy==='name'){
+a.sort(function(x,y){return (x.fullName||'').localeCompare(y.fullName||'');});
 }
 
 var stats={total:a.length,new:a.filter(function(x){return x.status==='new';}).length,screened:a.filter(function(x){return x.status==='screened';}).length,assessed:a.filter(function(x){return x.status==='assessed';}).length,interview_selected:a.filter(function(x){return x.status==='interview_selected';}).length,interviewed:a.filter(function(x){return x.status==='interviewed';}).length,accepted:a.filter(function(x){return x.status==='accepted';}).length,rejected:a.filter(function(x){return x.status==='rejected';}).length};
