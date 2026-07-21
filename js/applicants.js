@@ -75,7 +75,11 @@ function importApplicants(data) {
         
         // ตรวจสอบว่ามีชื่อหรือไม่
         if (applicant.fullName) {
-            store.saveApplicant(applicant);
+            const saved = store.saveApplicant(applicant);
+            // แจ้งเตือนผู้สมัครใหม่
+            if (typeof notification !== 'undefined') {
+                notification.notifyNewApplicant(saved);
+            }
             imported++;
         }
     });

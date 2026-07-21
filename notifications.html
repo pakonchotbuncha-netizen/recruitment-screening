@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>การแจ้งเตือน - ระบบคัดกรองผู้สมัคร</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-gray-600 hover:text-gray-900">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                    </a>
+                    <h1 class="text-2xl font-bold text-gray-900">🔔 การแจ้งเตือน</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="notification.markAllAsRead(); renderNotifications();" class="text-blue-600 hover:text-blue-800 font-medium">
+                        อ่านทั้งหมด
+                    </button>
+                    <button onclick="notification.clearAllNotifications(); renderNotifications();" class="text-red-600 hover:text-red-800 font-medium">
+                        ล้างทั้งหมด
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">ทั้งหมด</p>
+                        <p class="text-3xl font-bold text-gray-900" id="totalCount">0</p>
+                    </div>
+                    <div class="text-4xl">📊</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">ยังไม่ได้อ่าน</p>
+                        <p class="text-3xl font-bold text-red-600" id="unreadCount">0</p>
+                    </div>
+                    <div class="text-4xl">🔴</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">ผู้สมัครใหม่</p>
+                        <p class="text-3xl font-bold text-blue-600" id="newApplicantCount">0</p>
+                    </div>
+                    <div class="text-4xl">🆕</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">แจ้งเตือนสัมภาษณ์</p>
+                        <p class="text-3xl font-bold text-orange-600" id="interviewReminderCount">0</p>
+                    </div>
+                    <div class="text-4xl">📅</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="bg-white rounded-lg shadow mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8 px-6">
+                    <button onclick="filterNotifications('all')" class="filter-tab py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium">
+                        ทั้งหมด
+                    </button>
+                    <button onclick="filterNotifications('new_applicant')" class="filter-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        🆕 ผู้สมัครใหม่
+                    </button>
+                    <button onclick="filterNotifications('interview_reminder')" class="filter-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        📅 แจ้งเตือนสัมภาษณ์
+                    </button>
+                    <button onclick="filterNotifications('status_change')" class="filter-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        🔄 เปลี่ยนสถานะ
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Notification List -->
+        <div class="bg-white rounded-lg shadow">
+            <div id="notificationList" class="divide-y divide-gray-200">
+                <!-- Notifications will be rendered here -->
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="bg-white rounded-lg shadow mt-8 p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">⚙️ ตั้งค่าการแจ้งเตือน</h2>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-medium text-gray-900">แจ้งเตือนผู้สมัครใหม่</p>
+                        <p class="text-sm text-gray-500">รับการแจ้งเตือนเมื่อมีผู้สมัครใหม่เข้ามา</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="notifyNewApplicant" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-medium text-gray-900">แจ้งเตือนก่อนสัมภาษณ์ 3 วัน</p>
+                        <p class="text-sm text-gray-500">รับการแจ้งเตือนก่อนวันสัมภาษณ์ 3 วัน</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="notifyInterviewReminder" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-medium text-gray-900">แจ้งเตือนการเปลี่ยนสถานะ</p>
+                        <p class="text-sm text-gray-500">รับการแจ้งเตือนเมื่อสถานะผู้สมัครเปลี่ยนแปลง</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="notifyStatusChange" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/pdpa-compliance.js"></script>
+    <script src="js/data-store.js"></script>
+    <script src="js/notification-system.js"></script>
+    <script>
+        let currentFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderNotifications();
+            updateStats();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                renderNotifications();
+                updateStats();
+            }, 30000);
+        });
+
+        function renderNotifications() {
+            const notifications_list = document.getElementById('notificationList');
+            let notifications_data = notification.getNotifications();
+            
+            // Apply filter
+            if (currentFilter !== 'all') {
+                notifications_data = notifications_data.filter(n => n.type === currentFilter);
+            }
+            
+            if (notifications_data.length === 0) {
+                notifications_list.innerHTML = `
+                    <div class="p-12 text-center text-gray-500">
+                        <div class="text-6xl mb-4">🔕</div>
+                        <p class="text-lg">ไม่มีการแจ้งเตือน</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            notifications_list.innerHTML = notifications_data.map(n => `
+                <div class="p-6 hover:bg-gray-50 transition-colors ${!n.read ? 'bg-blue-50' : ''}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-start space-x-4 flex-1">
+                            <div class="text-3xl">${n.type === 'new_applicant' ? '🆕' : n.type === 'interview_reminder' ? '📅' : '🔄'}</div>
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <h3 class="font-bold text-gray-900 ${!n.read ? 'text-blue-900' : ''}">${n.title}</h3>
+                                    ${!n.read ? '<span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">ใหม่</span>' : ''}
+                                    <span class="text-xs px-2 py-1 rounded-full ${n.priority === 'high' ? 'bg-orange-100 text-orange-800' : n.priority === 'urgent' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'}">
+                                        ${n.priority === 'high' ? 'สำคัญ' : n.priority === 'urgent' ? 'เร่งด่วน' : 'ปกติ'}
+                                    </span>
+                                </div>
+                                <p class="text-gray-600 mb-2">${n.message}</p>
+                                <p class="text-sm text-gray-400">${notification.formatTime(n.createdAt)}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            ${!n.read ? `
+                                <button onclick="markAsRead('${n.id}')" class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                                    อ่านแล้ว
+                                </button>
+                            ` : ''}
+                            <button onclick="deleteNotification('${n.id}')" class="text-red-600 hover:text-red-800 font-medium text-sm">
+                                ลบ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            const stats = notification.getStats();
+            document.getElementById('totalCount').textContent = stats.total;
+            document.getElementById('unreadCount').textContent = stats.unread;
+            document.getElementById('newApplicantCount').textContent = stats.byType.new_applicant;
+            document.getElementById('interviewReminderCount').textContent = stats.byType.interview_reminder;
+        }
+
+        function filterNotifications(type) {
+            currentFilter = type;
+            
+            // Update tab styles
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.remove('border-blue-500', 'text-blue-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            event.target.classList.remove('border-transparent', 'text-gray-500');
+            event.target.classList.add('border-blue-500', 'text-blue-600');
+            
+            renderNotifications();
+        }
+
+        function markAsRead(id) {
+            notification.markAsRead(id);
+            renderNotifications();
+            updateStats();
+        }
+
+        function deleteNotification(id) {
+            if (confirm('ต้องการลบการแจ้งเตือนนี้หรือไม่?')) {
+                notification.deleteNotification(id);
+                renderNotifications();
+                updateStats();
+            }
+        }
+    </script>
+</body>
+</html>

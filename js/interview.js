@@ -99,12 +99,27 @@ function confirmInterview(id) {
         scores: []
     };
     
+    // แสดง dialog ตั้งวันสัมภาษณ์
+    const scheduledDate = prompt('กรุณาระบุวันสัมภาษณ์ (YYYY-MM-DD):', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+    if (!scheduledDate) return;
+    
+    const scheduledTime = prompt('เวลาสัมภาษณ์ (เช่น 10:00):', '10:00');
+    if (!scheduledTime) return;
+    
     interview.confirmed = true;
     interview.confirmedAt = new Date().toISOString();
+    interview.scheduledDate = scheduledDate;
+    interview.scheduledTime = scheduledTime;
+    
     saveInterview(interview);
     
+    // แจ้งเตือนการนัดสัมภาษณ์
+    if (typeof notification !== 'undefined') {
+        notification.notifyInterviewReminder(interview);
+    }
+    
     renderConfirmationList();
-    alert('ยืนยันการตอบรับสำเร็จ!');
+    alert('ยืนยันการตอบรับและนัดสัมภาษณ์สำเร็จ!');
 }
 
 // ===== STEP 7: AI INTERVIEW FORM =====
