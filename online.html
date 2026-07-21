@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบคัดกรองและสัมภาษณ์ตำแหน่งงาน - Online Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Sarabun', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">🎯</div>
+                <h1 class="text-2xl font-bold text-gray-800">ระบบคัดกรองและสัมภาษณ์</h1>
+                <p class="text-gray-600 mt-2">กระบวนการคัดกรองและสัมภาษณ์ตำแหน่งงาน</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ชื่อผู้ใช้</label>
+                    <input type="text" id="username" required class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">รหัสผ่าน</label>
+                    <input type="password" id="password" required class="w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div id="loginError" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p class="text-red-800 text-sm"></p>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 font-semibold">
+                    เข้าสู่ระบบ
+                </button>
+            </form>
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <p class="text-sm text-blue-800">
+                    <strong>ข้อมูลการเข้าสู่ระบบ:</strong><br>
+                    Admin: admin / admin123<br>
+                    HR: hr / hr123<br>
+                    Interviewer: interviewer / interview123
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-sm">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">🎯 ระบบคัดกรองและสัมภาษณ์</h1>
+                        <p class="text-sm text-gray-600">ยินดีต้อนรับ <span id="userName"></span></p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="showNotifications()" class="relative text-gray-600 hover:text-gray-900">
+                            🔔
+                            <span id="notifBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                        </button>
+                        <button onclick="logout()" class="text-red-600 hover:text-red-800 font-medium">
+                            ออกจากระบบ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="bg-white border-b">
+            <div class="container mx-auto px-4">
+                <nav class="flex space-x-8">
+                    <button onclick="showTab('dashboard')" class="tab-btn py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium">
+                        📊 Dashboard
+                    </button>
+                    <button onclick="showTab('applicants')" class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        👥 ผู้สมัคร
+                    </button>
+                    <button onclick="showTab('assessment')" class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        📝 แบบทดสอบ
+                    </button>
+                    <button onclick="showTab('interview')" class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        🎤 สัมภาษณ์
+                    </button>
+                    <button onclick="showTab('reports')" class="tab-btn py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium">
+                        📈 รายงาน
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Dashboard Tab -->
+            <div id="dashboardTab" class="tab-content">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">ผู้สมัครทั้งหมด</p>
+                                <p class="text-3xl font-bold text-gray-900" id="totalApplicants">0</p>
+                            </div>
+                            <div class="text-4xl">👥</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">ผู้สมัครใหม่</p>
+                                <p class="text-3xl font-bold text-blue-600" id="newApplicants">0</p>
+                            </div>
+                            <div class="text-4xl">🆕</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">ทำแบบทดสอบแล้ว</p>
+                                <p class="text-3xl font-bold text-purple-600" id="assessedApplicants">0</p>
+                            </div>
+                            <div class="text-4xl">📝</div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm">สัมภาษณ์แล้ว</p>
+                                <p class="text-3xl font-bold text-green-600" id="interviewedApplicants">0</p>
+                            </div>
+                            <div class="text-4xl">🎤</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-4">📊 สถิติกระบวนการ</h2>
+                    <div id="processStats" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- Applicants Tab -->
+            <div id="applicantsTab" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold">👥 รายชื่อผู้สมัคร</h2>
+                        <div class="flex gap-2">
+                            <button onclick="showAddApplicantModal()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                                + เพิ่มผู้สมัคร
+                            </button>
+                            <button onclick="exportData()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                                📤 Export
+                            </button>
+                        </div>
+                    </div>
+                    <div id="applicantsList" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- Assessment Tab -->
+            <div id="assessmentTab" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-6">📝 แบบทดสอบ</h2>
+                    <p class="text-gray-600">เลือกผู้สมัครจากหน้ารายชื่อเพื่อเริ่มแบบทดสอบ</p>
+                </div>
+            </div>
+
+            <!-- Interview Tab -->
+            <div id="interviewTab" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-6">🎤 การสัมภาษณ์</h2>
+                    <p class="text-gray-600">จัดการการสัมภาษณ์และให้คะแนน</p>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reportsTab" class="tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-6">📈 รายงาน</h2>
+                    <p class="text-gray-600">รายงานสรุปผลการคัดกรองและสัมภาษณ์</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Data Store
+        const store = {
+            getApplicants() {
+                return JSON.parse(localStorage.getItem('applicants') || '[]');
+            },
+            saveApplicant(data) {
+                const applicants = this.getApplicants();
+                data.id = data.id || 'APP-' + Date.now();
+                data.createdAt = data.createdAt || new Date().toISOString();
+                data.status = data.status || 'new';
+                applicants.push(data);
+                localStorage.setItem('applicants', JSON.stringify(applicants));
+                return data;
+            },
+            getStats() {
+                const applicants = this.getApplicants();
+                return {
+                    total: applicants.length,
+                    new: applicants.filter(a => a.status === 'new').length,
+                    screened: applicants.filter(a => a.status === 'screened').length,
+                    assessed: applicants.filter(a => a.status === 'assessed').length,
+                    interview_selected: applicants.filter(a => a.status === 'interview_selected').length,
+                    interviewed: applicants.filter(a => a.status === 'interviewed').length,
+                    accepted: applicants.filter(a => a.status === 'accepted').length,
+                    rejected: applicants.filter(a => a.status === 'rejected').length
+                };
+            }
+        };
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const users = {
+                'admin': { password: 'admin123', role: 'admin', name: 'ผู้ดูแลระบบ' },
+                'hr': { password: 'hr123', role: 'hr', name: 'ฝ่ายบุคคล' },
+                'interviewer': { password: 'interview123', role: 'interviewer', name: 'ผู้สัมภาษณ์' }
+            };
+            
+            if (users[username] && users[username].password === password) {
+                localStorage.setItem('session', JSON.stringify({
+                    username: username,
+                    role: users[username].role,
+                    name: users[username].name
+                }));
+                showMainApp(users[username]);
+            } else {
+                document.getElementById('loginError').classList.remove('hidden');
+                document.getElementById('loginError').querySelector('p').textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+            }
+        });
+
+        function showMainApp(user) {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userName').textContent = user.name;
+            loadDashboard();
+        }
+
+        function logout() {
+            localStorage.removeItem('session');
+            location.reload();
+        }
+
+        // Check session
+        document.addEventListener('DOMContentLoaded', () => {
+            const session = localStorage.getItem('session');
+            if (session) {
+                showMainApp(JSON.parse(session));
+            }
+        });
+
+        // Tab Navigation
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            document.getElementById(tabName + 'Tab').classList.remove('hidden');
+            event.target.classList.remove('border-transparent', 'text-gray-500');
+            event.target.classList.add('border-blue-500', 'text-blue-600');
+            
+            if (tabName === 'dashboard') loadDashboard();
+            if (tabName === 'applicants') loadApplicants();
+        }
+
+        // Dashboard
+        function loadDashboard() {
+            const stats = store.getStats();
+            document.getElementById('totalApplicants').textContent = stats.total;
+            document.getElementById('newApplicants').textContent = stats.new;
+            document.getElementById('assessedApplicants').textContent = stats.assessed;
+            document.getElementById('interviewedApplicants').textContent = stats.interviewed;
+            
+            const processSteps = [
+                { name: 'ผู้สมัครใหม่', count: stats.new, color: 'blue' },
+                { name: 'ผ่านการคัดเลือก', count: stats.screened, color: 'green' },
+                { name: 'ทำแบบทดสอบ', count: stats.assessed, color: 'purple' },
+                { name: 'ได้เข้าสัมภาษณ์', count: stats.interview_selected, color: 'orange' },
+                { name: 'สัมภาษณ์แล้ว', count: stats.interviewed, color: 'red' },
+                { name: 'รับเข้าทำงาน', count: stats.accepted, color: 'green' },
+                { name: 'ไม่ผ่าน', count: stats.rejected, color: 'gray' }
+            ];
+            
+            document.getElementById('processStats').innerHTML = processSteps.map(step => `
+                <div class="flex items-center justify-between p-4 bg-${step.color}-50 rounded-lg">
+                    <span class="font-medium text-${step.color}-900">${step.name}</span>
+                    <span class="text-2xl font-bold text-${step.color}-600">${step.count}</span>
+                </div>
+            `).join('');
+        }
+
+        // Applicants
+        function loadApplicants() {
+            const applicants = store.getApplicants();
+            
+            if (applicants.length === 0) {
+                document.getElementById('applicantsList').innerHTML = '<p class="text-gray-500 text-center py-8">ยังไม่มีข้อมูลผู้สมัคร</p>';
+                return;
+            }
+            
+            document.getElementById('applicantsList').innerHTML = applicants.map(a => `
+                <div class="border rounded-lg p-4 hover:bg-gray-50">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="font-bold text-lg">${a.fullName || '-'}</h3>
+                            <p class="text-gray-600">${a.position || '-'} | ${a.department || '-'}</p>
+                            <p class="text-sm text-gray-500">${a.email || '-'} | ${a.phone || '-'}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="px-3 py-1 rounded-full text-sm ${getStatusClass(a.status)}">${getStatusText(a.status)}</span>
+                            <p class="text-xs text-gray-400 mt-2">${formatDate(a.applyDate)}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'new': 'bg-blue-100 text-blue-800',
+                'screened': 'bg-green-100 text-green-800',
+                'assessed': 'bg-purple-100 text-purple-800',
+                'interview_selected': 'bg-orange-100 text-orange-800',
+                'interviewed': 'bg-red-100 text-red-800',
+                'accepted': 'bg-green-100 text-green-800',
+                'rejected': 'bg-gray-100 text-gray-800'
+            };
+            return classes[status] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getStatusText(status) {
+            const texts = {
+                'new': 'ใหม่',
+                'screened': 'ผ่านการคัดเลือก',
+                'assessed': 'ทำแบบทดสอบแล้ว',
+                'interview_selected': 'ได้เข้าสัมภาษณ์',
+                'interviewed': 'สัมภาษณ์แล้ว',
+                'accepted': 'รับเข้าทำงาน',
+                'rejected': 'ไม่ผ่าน'
+            };
+            return texts[status] || status;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function showAddApplicantModal() {
+            const fullName = prompt('ชื่อ-นามสกุล:');
+            if (!fullName) return;
+            
+            const position = prompt('ตำแหน่ง:');
+            const email = prompt('Email:');
+            const phone = prompt('เบอร์โทร:');
+            const department = prompt('แผนก:');
+            
+            store.saveApplicant({ fullName, position, email, phone, department, status: 'new' });
+            loadApplicants();
+            loadDashboard();
+            alert('เพิ่มผู้สมัครสำเร็จ!');
+        }
+
+        function exportData() {
+            const data = store.getApplicants();
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `applicants_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        function showNotifications() {
+            alert('ระบบแจ้งเตือน - ยังไม่มีแจ้งเตือนใหม่');
+        }
+    </script>
+</body>
+</html>
