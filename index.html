@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบคัดกรองและสัมภาษณ์ - Sync Version</title>
+    <title>ระบบคัดกรองและสัมภาษณ์ - Team Sync</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
@@ -29,6 +29,9 @@
         .header h1 { font-size: 24px; color: #333; }
         .header .user-info { display: flex; align-items: center; gap: 15px; }
         .btn-logout { padding: 8px 15px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .sync-status { padding: 5px 10px; background: #4caf50; color: white; border-radius: 5px; font-size: 12px; }
+        .sync-status.syncing { background: #ff9800; }
+        .sync-status.error { background: #f44336; }
         
         /* Tabs */
         .tabs { background: white; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
@@ -79,14 +82,12 @@
         .status-rejected { background: #ffcdd2; color: #c62828; }
         
         .btn-add { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; margin-right: 10px; }
-        .btn-export { padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; margin-right: 10px; }
-        .btn-import { padding: 10px 20px; background: #ff9800; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
+        .btn-sync { padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
         
-        /* Sync Panel */
-        .sync-panel { background: #fff3e0; border: 2px solid #ff9800; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .sync-panel h3 { color: #f57c00; margin-bottom: 15px; }
-        .sync-panel p { color: #666; margin-bottom: 15px; }
-        .sync-buttons { display: flex; gap: 10px; }
+        /* Loading */
+        .loading { text-align: center; padding: 40px; color: #999; }
+        .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -123,6 +124,7 @@
                 <div class="header-content">
                     <h1>🎯 ระบบคัดกรองและสัมภาษณ์</h1>
                     <div class="user-info">
+                        <span id="syncStatus" class="sync-status">🔄 กำลัง sync...</span>
                         <span>ยินดีต้อนรับ <strong id="userName"></strong></span>
                         <button onclick="logout()" class="btn-logout">ออกจากระบบ</button>
                     </div>
@@ -135,7 +137,6 @@
                 <div class="tabs-nav">
                     <button onclick="showTab('dashboard')" class="tab-btn active">📊 Dashboard</button>
                     <button onclick="showTab('applicants')" class="tab-btn">👥 ผู้สมัคร</button>
-                    <button onclick="showTab('sync')" class="tab-btn">🔄 Sync ข้อมูล</button>
                 </div>
             </div>
         </div>
@@ -175,50 +176,14 @@
                         <h2 style="margin: 0;">👥 รายชื่อผู้สมัคร</h2>
                         <div>
                             <button onclick="showAddApplicantModal()" class="btn-add">+ เพิ่มผู้สมัคร</button>
-                            <button onclick="exportData()" class="btn-export">📤 Export</button>
+                            <button onclick="syncData()" class="btn-sync">🔄 Sync</button>
                         </div>
                     </div>
-                    <div id="applicantsList"></div>
-                </div>
-            </div>
-
-            <!-- Sync -->
-            <div id="syncTab" class="tab-content hidden">
-                <div class="sync-panel">
-                    <h3>🔄 Sync ข้อมูลระหว่างผู้ปฏิบัติงาน</h3>
-                    <p>ระบบนี้เก็บข้อมูลในเบราว์เซอร์แต่ละเครื่อง ใช้ฟีเจอร์นี้เพื่อ sync ข้อมูลระหว่างกัน</p>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h4 style="margin-bottom: 10px; color: #f57c00;">📤 Export ข้อมูล (ส่งให้คนอื่น)</h4>
-                        <p style="margin-bottom: 10px; font-size: 14px;">คลิกปุ่มด้านล่างเพื่อ export ข้อมูลทั้งหมดเป็นไฟล์ JSON แล้วส่งไฟล์ให้ผู้อื่น</p>
-                        <button onclick="exportAllData()" class="btn-export">📤 Export ข้อมูลทั้งหมด</button>
-                    </div>
-
-                    <div>
-                        <h4 style="margin-bottom: 10px; color: #f57c00;">📥 Import ข้อมูล (รับจากคนอื่น)</h4>
-                        <p style="margin-bottom: 10px; font-size: 14px;">เลือกไฟล์ JSON ที่ได้รับจากผู้อื่นเพื่อ import เข้าระบบ</p>
-                        <input type="file" id="importFile" accept=".json" style="margin-bottom: 10px;">
-                        <br>
-                        <button onclick="importAllData()" class="btn-import">📥 Import ข้อมูล</button>
-                    </div>
-
-                    <div style="margin-top: 20px; padding: 15px; background: #fff; border-radius: 5px;">
-                        <h4 style="margin-bottom: 10px; color: #333;">💡 วิธีใช้งาน</h4>
-                        <ol style="margin-left: 20px; color: #666; line-height: 1.8;">
-                            <li>Admin เพิ่มข้อมูลผู้สมัคร</li>
-                            <li>Admin คลิก "Export ข้อมูลทั้งหมด" → ได้ไฟล์ JSON</li>
-                            <li>ส่งไฟล์ JSON ให้ผู้ปฏิบัติงานคนอื่น (ทาง LINE, Email, etc.)</li>
-                            <li>ผู้ปฏิบัติงานคนอื่นคลิก "Import ข้อมูล" → เลือกไฟล์ JSON</li>
-                            <li>ข้อมูลจะ sync กันทั้งหมด</li>
-                        </ol>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h2>📊 สถิติการ Sync</h2>
-                    <div id="syncStats">
-                        <p style="color: #666;">最后一次 sync: <span id="lastSync">ยังไม่เคย sync</span></p>
-                        <p style="color: #666;">จำนวนครั้งที่ sync: <span id="syncCount">0</span></p>
+                    <div id="applicantsList">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>กำลังโหลดข้อมูล...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -226,20 +191,68 @@
     </div>
 
     <script>
+        // GitHub Data Store Configuration
+        const GITHUB_REPO = 'pakonchotbuncha-netizen/recruitment-data';
+        const DATA_FILE = 'data.json';
+        const DATA_URL = `https://raw.githubusercontent.com/${GITHUB_REPO}/master/${DATA_FILE}`;
+        
         // Data Store
         const store = {
+            data: { applicants: [], lastUpdate: null },
+            
+            async loadData() {
+                try {
+                    updateSyncStatus('syncing', '🔄 กำลัง sync...');
+                    const response = await fetch(DATA_URL + '?t=' + Date.now());
+                    if (response.ok) {
+                        this.data = await response.json();
+                        updateSyncStatus('success', '✅ Sync แล้ว');
+                    } else {
+                        throw new Error('Failed to load data');
+                    }
+                } catch (error) {
+                    console.error('Load data error:', error);
+                    updateSyncStatus('error', '❌ Sync ล้มเหลว');
+                    // Use local data as fallback
+                    const localData = localStorage.getItem('recruitment_data');
+                    if (localData) {
+                        this.data = JSON.parse(localData);
+                    }
+                }
+            },
+            
+            saveData() {
+                this.data.lastUpdate = new Date().toISOString();
+                localStorage.setItem('recruitment_data', JSON.stringify(this.data));
+                
+                // Show message to admin
+                if (this.data.applicants.length > 0) {
+                    const json = JSON.stringify(this.data, null, 2);
+                    console.log('Data to upload to GitHub:', json);
+                    
+                    // Copy to clipboard
+                    navigator.clipboard.writeText(json).then(() => {
+                        alert('✅ บันทึกข้อมูลแล้ว!\n\n📋 Copy ข้อมูลเข้า clipboard แล้ว\n\nกรุณา paste ข้อมูลนี้ไปที่:\nhttps://github.com/pakonchotbuncha-netizen/recruitment-data/edit/master/data.json');
+                    }).catch(() => {
+                        alert('✅ บันทึกข้อมูลแล้ว!\n\nกรุณา copy ข้อมูลด้านล่างและ paste ที่:\nhttps://github.com/pakonchotbuncha-netizen/recruitment-data/edit/master/data.json\n\n' + json);
+                    });
+                }
+            },
+            
             getApplicants() {
-                return JSON.parse(localStorage.getItem('applicants') || '[]');
+                return this.data.applicants || [];
             },
-            saveApplicant(data) {
-                const applicants = this.getApplicants();
-                data.id = data.id || 'APP-' + Date.now();
-                data.createdAt = data.createdAt || new Date().toISOString();
-                data.status = data.status || 'new';
-                applicants.push(data);
-                localStorage.setItem('applicants', JSON.stringify(applicants));
-                return data;
+            
+            saveApplicant(applicant) {
+                if (!this.data.applicants) this.data.applicants = [];
+                applicant.id = applicant.id || 'APP-' + Date.now();
+                applicant.createdAt = applicant.createdAt || new Date().toISOString();
+                applicant.status = applicant.status || 'new';
+                this.data.applicants.push(applicant);
+                this.saveData();
+                return applicant;
             },
+            
             getStats() {
                 const applicants = this.getApplicants();
                 return {
@@ -252,23 +265,25 @@
                     accepted: applicants.filter(a => a.status === 'accepted').length,
                     rejected: applicants.filter(a => a.status === 'rejected').length
                 };
-            },
-            exportAll() {
-                return {
-                    applicants: this.getApplicants(),
-                    exportedAt: new Date().toISOString(),
-                    version: '1.0'
-                };
-            },
-            importAll(data) {
-                if (data.applicants) {
-                    localStorage.setItem('applicants', JSON.stringify(data.applicants));
-                }
             }
         };
+        
+        function updateSyncStatus(status, text) {
+            const el = document.getElementById('syncStatus');
+            el.textContent = text;
+            el.className = 'sync-status';
+            if (status === 'syncing') el.classList.add('syncing');
+            if (status === 'error') el.classList.add('error');
+        }
+        
+        async function syncData() {
+            await store.loadData();
+            loadDashboard();
+            loadApplicants();
+        }
 
         // Login
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
@@ -293,12 +308,22 @@
             }
         });
 
-        function showMainApp(user) {
+        async function showMainApp(user) {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             document.getElementById('userName').textContent = user.name;
+            
+            // Load data from GitHub
+            await store.loadData();
             loadDashboard();
-            loadSyncStats();
+            
+            // Auto-sync every 30 seconds
+            setInterval(() => store.loadData().then(() => {
+                loadDashboard();
+                if (!document.getElementById('applicantsTab').classList.contains('hidden')) {
+                    loadApplicants();
+                }
+            }), 30000);
         }
 
         function logout() {
@@ -324,7 +349,6 @@
             
             if (tabName === 'dashboard') loadDashboard();
             if (tabName === 'applicants') loadApplicants();
-            if (tabName === 'sync') loadSyncStats();
         }
 
         // Dashboard
@@ -409,85 +433,6 @@
             store.saveApplicant({ fullName, position, email, phone, department, status: 'new' });
             loadApplicants();
             loadDashboard();
-            alert('เพิ่มผู้สมัครสำเร็จ!');
-        }
-
-        function exportData() {
-            const data = store.getApplicants();
-            const json = JSON.stringify(data, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `applicants_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-        }
-
-        // Sync Functions
-        function exportAllData() {
-            const data = store.exportAll();
-            const json = JSON.stringify(data, null, 2);
-            const blob = new Blob([json], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `recruitment_sync_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
-            a.click();
-            
-            // Update sync stats
-            const syncCount = parseInt(localStorage.getItem('syncCount') || '0') + 1;
-            localStorage.setItem('syncCount', syncCount);
-            localStorage.setItem('lastSync', new Date().toISOString());
-            loadSyncStats();
-            
-            alert('Export สำเร็จ! ส่งไฟล์นี้ให้ผู้ปฏิบัติงานคนอื่น');
-        }
-
-        function importAllData() {
-            const fileInput = document.getElementById('importFile');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                alert('กรุณาเลือกไฟล์');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    
-                    if (!data.applicants) {
-                        alert('ไฟล์ไม่ถูกต้อง');
-                        return;
-                    }
-                    
-                    if (confirm(`พบข้อมูลผู้สมัคร ${data.applicants.length} คน\nต้องการ import หรือไม่?\n\n⚠️ ข้อมูลเดิมจะถูกแทนที่`)) {
-                        store.importAll(data);
-                        
-                        // Update sync stats
-                        const syncCount = parseInt(localStorage.getItem('syncCount') || '0') + 1;
-                        localStorage.setItem('syncCount', syncCount);
-                        localStorage.setItem('lastSync', new Date().toISOString());
-                        
-                        loadDashboard();
-                        loadSyncStats();
-                        alert('Import สำเร็จ!');
-                    }
-                } catch (error) {
-                    alert('ไม่สามารถอ่านไฟล์ได้: ' + error.message);
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        function loadSyncStats() {
-            const lastSync = localStorage.getItem('lastSync');
-            const syncCount = localStorage.getItem('syncCount') || '0';
-            
-            document.getElementById('lastSync').textContent = lastSync ? 
-                new Date(lastSync).toLocaleString('th-TH') : 'ยังไม่เคย sync';
-            document.getElementById('syncCount').textContent = syncCount;
         }
     </script>
 </body>
