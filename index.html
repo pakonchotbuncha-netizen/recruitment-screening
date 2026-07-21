@@ -157,6 +157,11 @@ Interviewer: interviewer / interview123
 <option value="accepted">✅ รับเข้าทำงาน</option>
 <option value="rejected">❌ ไม่ผ่าน</option>
 </select>
+<div style="display:flex;gap:5px;align-items:center">
+<input type="date" id="dateFrom" onchange="render()" style="padding:8px 10px;border:1px solid #ddd;border-radius:5px;font-size:13px" title="ตั้งแต่">
+<span style="color:#999">→</span>
+<input type="date" id="dateTo" onchange="render()" style="padding:8px 10px;border:1px solid #ddd;border-radius:5px;font-size:13px" title="ถึง">
+</div>
 <select id="sortBy" onchange="render()" style="padding:8px 15px;border:1px solid #ddd;border-radius:5px">
 <option value="newest">📅 ล่าสุดก่อน</option>
 <option value="oldest">📅 เก่าสุดก่อน</option>
@@ -441,6 +446,14 @@ a=a.filter(function(x){
 return (x.fullName||'').toLowerCase().includes(searchInput)||
 (x.position||'').toLowerCase().includes(searchInput);
 });
+}
+var dateFrom=document.getElementById('dateFrom').value;
+var dateTo=document.getElementById('dateTo').value;
+if(dateFrom){
+a=a.filter(function(x){return x.applyDate>=dateFrom;});
+}
+if(dateTo){
+a=a.filter(function(x){return x.applyDate<=dateTo;});
 }
 
 // Sort
