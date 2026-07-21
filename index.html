@@ -118,6 +118,10 @@ Interviewer: interviewer / interview123
 <div class="tabs-nav">
 <button onclick="showTab('dashboard',this)" class="tab-btn active">📊 Dashboard</button>
 <button onclick="showTab('applicants',this)" class="tab-btn">👥 ผู้สมัคร</button>
+<button onclick="showTab('assessment',this)" class="tab-btn">📝 แบบทดสอบ</button>
+<button onclick="showTab('ai-analysis',this)" class="tab-btn">🤖 AI วิเคราะห์</button>
+<button onclick="showTab('interview',this)" class="tab-btn">🎤 สัมภาษณ์</button>
+<button onclick="showTab('summary',this)" class="tab-btn">📋 สรุปผล</button>
 </div>
 </div>
 </div>
@@ -158,6 +162,114 @@ Interviewer: interviewer / interview123
 </div>
 </div>
 <div id="applicantsList"></div>
+</div>
+</div>
+
+<div id="assessmentTab" class="tab-content hidden">
+<div class="card">
+<h2>📝 แบบทดสอบ (Step 3)</h2>
+<div class="auto-sync-info">
+<p><strong>ขั้นตอน:</strong> เมื่อคัดเลือกผู้สมัครแล้ว ให้ทำแบบทดสอบทัศนคติ ทักษะ ทุนองค์กร และ 3E3P</p>
+</div>
+<div style="margin-top:20px">
+<h3>📋 รายการแบบทดสอบ</h3>
+<ul style="list-style:none;padding:0;margin-top:15px">
+<li style="padding:15px;background:#f5f5f5;margin-bottom:10px;border-radius:5px">
+<strong>1. แบบทดสอบทัศนคติ</strong><br>
+<span style="color:#666;font-size:14px">ประเมินทัศนคติเชิงบวก การทำงานเป็นทีม การแก้ปัญหา</span>
+</li>
+<li style="padding:15px;background:#f5f5f5;margin-bottom:10px;border-radius:5px">
+<strong>2. แบบทดสอบทักษะ</strong><br>
+<span style="color:#666;font-size:14px">ประเมินทักษะเฉพาะทาง ความสามารถทางเทคนิค</span>
+</li>
+<li style="padding:15px;background:#f5f5f5;margin-bottom:10px;border-radius:5px">
+<strong>3. แบบทดสอบทุนองค์กร (CC)</strong><br>
+<span style="color:#666;font-size:14px">ประเมิน Core Competency 7 ด้าน</span>
+</li>
+<li style="padding:15px;background:#f5f5f5;margin-bottom:10px;border-radius:5px">
+<strong>4. แบบทดสอบ 3E3P</strong><br>
+<span style="color:#666;font-size:14px">ประเมิน Energy, Enthusiasm, Execution, Purpose, Passion, Perseverance</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="ai-analysisTab" class="tab-content hidden">
+<div class="card">
+<h2>🤖 AI วิเคราะห์ (Step 4)</h2>
+<div class="auto-sync-info">
+<p><strong>ขั้นตอน:</strong> AI ช่วยวิเคราะห์คุณสมบัติของผู้สมัครจากแบบประเมินและข้อมูลของผู้สมัคร</p>
+</div>
+<div style="margin-top:20px">
+<h3>📊 สิ่งที่ AI วิเคราะห์</h3>
+<ul style="list-style:none;padding:0;margin-top:15px">
+<li style="padding:15px;background:#e3f2fd;margin-bottom:10px;border-radius:5px">
+<strong>✅ จุดแข็ง</strong><br>
+<span style="color:#666;font-size:14px">ระบุจุดแข็งของผู้สมัครจากผลการทดสอบ</span>
+</li>
+<li style="padding:15px;background:#fff3e0;margin-bottom:10px;border-radius:5px">
+<strong>⚠️ จุดที่ต้องพัฒนา</strong><br>
+<span style="color:#666;font-size:14px">ระบุจุดอ่อนและข้อเสนอแนะ</span>
+</li>
+<li style="padding:15px;background:#e8f5e9;margin-bottom:10px;border-radius:5px">
+<strong>💡 ความเหมาะสมกับตำแหน่ง</strong><br>
+<span style="color:#666;font-size:14px">ประเมินความเหมาะสมกับตำแหน่งงาน</span>
+</li>
+<li style="padding:15px;background:#f3e5f5;margin-bottom:10px;border-radius:5px">
+<strong>📈 คะแนนรวม</strong><br>
+<span style="color:#666;font-size:14px">คะแนนรวมจากทุกแบบทดสอบ</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="interviewTab" class="tab-content hidden">
+<div class="card">
+<h2>🎤 สัมภาษณ์ (Step 5-8)</h2>
+<div class="auto-sync-info">
+<p><strong>ขั้นตอน:</strong> คัดเลือก → ตอบรับ → AI สร้างแบบสัมภาษณ์ → สัมภาษณ์ → ให้คะแนน</p>
+</div>
+<div style="margin-top:20px">
+<h3>📋 กระบวนการสัมภาษณ์</h3>
+<ol style="padding-left:20px;margin-top:15px;line-height:2">
+<li><strong>Step 5:</strong> ผู้ปฏิบัติงานคัดเลือกผู้สมัครเพื่อเข้ากระบวนการสัมภาษณ์ P2</li>
+<li><strong>Step 6:</strong> ผู้สมัครตอบรับการเข้าสัมภาษณ์</li>
+<li><strong>Step 7:</strong> AI สร้างแบบสัมภาษณ์อัตโนมัติ พร้อมข้อมูลของผู้สมัคร</li>
+<li><strong>Step 8:</strong> กระบวนการสัมภาษณ์ ผู้สัมภาษณ์ 5 คนให้คะแนน</li>
+</ol>
+</div>
+</div>
+</div>
+
+<div id="summaryTab" class="tab-content hidden">
+<div class="card">
+<h2>📋 สรุปผล (Step 9)</h2>
+<div class="auto-sync-info">
+<p><strong>ขั้นตอน:</strong> AI สรุปผลการสัมภาษณ์ พร้อมทั้งความเห็นจาก AI จากคะแนนของผู้สัมภาษณ์</p>
+</div>
+<div style="margin-top:20px">
+<h3>📊 สิ่งที่ AI สรุป</h3>
+<ul style="list-style:none;padding:0;margin-top:15px">
+<li style="padding:15px;background:#e8f5e9;margin-bottom:10px;border-radius:5px">
+<strong>✅ สรุปคะแนน</strong><br>
+<span style="color:#666;font-size:14px">สรุปคะแนนจากผู้สัมภาษณ์ 5 คน</span>
+</li>
+<li style="padding:15px;background:#e3f2fd;margin-bottom:10px;border-radius:5px">
+<strong>🤖 ความเห็น AI</strong><br>
+<span style="color:#666;font-size:14px">AI วิเคราะห์และให้ความเห็น</span>
+</li>
+<li style="padding:15px;background:#fff3e0;margin-bottom:10px;border-radius:5px">
+<strong>💡 คำแนะนำ</strong><br>
+<span style="color:#666;font-size:14px">คำแนะนำในการตัดสินใจ</span>
+</li>
+<li style="padding:15px;background:#f3e5f5;margin-bottom:10px;border-radius:5px">
+<strong>📈 การตัดสินใจ</strong><br>
+<span style="color:#666;font-size:14px">รับเข้าทำงาน / ไม่ผ่าน</span>
+</li>
+</ul>
+</div>
 </div>
 </div>
 </div>
