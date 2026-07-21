@@ -1,354 +1,298 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบคัดกรองและสัมภาษณ์ - Team Sync v2</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .hidden { display: none; }
-        .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .login-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px; width: 100%; }
-        .login-box h1 { text-align: center; color: #333; margin-bottom: 10px; }
-        .login-box p { text-align: center; color: #666; margin-bottom: 30px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #555; font-weight: 500; }
-        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        .btn { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: 600; }
-        .btn:hover { background: #5568d3; }
-        .error { background: #fee; border: 1px solid #fcc; color: #c33; padding: 10px; border-radius: 5px; margin-bottom: 15px; }
-        .info-box { background: #e3f2fd; border: 1px solid #90caf9; color: #1976d2; padding: 15px; border-radius: 5px; margin-top: 20px; font-size: 13px; }
-        .header { background: white; padding: 15px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .header h1 { font-size: 22px; color: #333; }
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        .sync-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .sync-ok { background: #e8f5e9; color: #2e7d32; }
-        .sync-loading { background: #fff3e0; color: #f57c00; }
-        .sync-error { background: #ffebee; color: #c62828; }
-        .btn-logout { padding: 8px 15px; background: #f44336; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .tabs { background: white; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
-        .tabs-nav { display: flex; gap: 30px; }
-        .tab-btn { padding: 15px 5px; background: none; border: none; border-bottom: 3px solid transparent; color: #666; cursor: pointer; font-size: 15px; font-weight: 500; }
-        .tab-btn.active { color: #667eea; border-bottom-color: #667eea; }
-        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .card h2 { margin-bottom: 20px; color: #333; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .stat-card .label { color: #666; font-size: 13px; margin-bottom: 5px; }
-        .stat-card .value { font-size: 32px; font-weight: bold; }
-        .stat-card.blue .value { color: #2196f3; }
-        .stat-card.purple .value { color: #9c27b0; }
-        .stat-card.green .value { color: #4caf50; }
-        .process-step { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 5px; margin-bottom: 8px; }
-        .process-step .count { font-size: 22px; font-weight: bold; }
-        .process-step.blue { background: #e3f2fd; } .process-step.blue .count { color: #1976d2; }
-        .process-step.green { background: #e8f5e9; } .process-step.green .count { color: #388e3c; }
-        .process-step.purple { background: #f3e5f5; } .process-step.purple .count { color: #7b1fa2; }
-        .process-step.orange { background: #fff3e0; } .process-step.orange .count { color: #f57c00; }
-        .process-step.red { background: #ffebee; } .process-step.red .count { color: #d32f2f; }
-        .applicant-item { border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-bottom: 10px; }
-        .applicant-item:hover { background: #f9f9f9; }
-        .applicant-header { display: flex; justify-content: space-between; align-items: start; }
-        .applicant-info h3 { margin-bottom: 5px; color: #333; }
-        .applicant-info p { color: #666; font-size: 14px; margin-bottom: 3px; }
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-        .status-new { background: #e3f2fd; color: #1976d2; }
-        .status-screened { background: #e8f5e9; color: #388e3c; }
-        .status-assessed { background: #f3e5f5; color: #7b1fa2; }
-        .status-interview_selected { background: #fff3e0; color: #f57c00; }
-        .status-interviewed { background: #ffebee; color: #d32f2f; }
-        .status-accepted { background: #c8e6c9; color: #2e7d32; }
-        .status-rejected { background: #ffcdd2; color: #c62828; }
-        .btn-add { padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; }
-        .btn-sync { padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; margin-left: 10px; }
-        .auto-sync-info { background: #e8f5e9; border: 1px solid #a5d6a7; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
-        .auto-sync-info p { color: #2e7d32; font-size: 14px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบคัดกรอง v3 - Auto Sync</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f5f5f5}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.hidden{display:none}
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+.login-box{background:#fff;padding:40px;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.2);max-width:400px;width:100%}
+.login-box h1{text-align:center;color:#333;margin-bottom:10px}
+.login-box p{text-align:center;color:#666;margin-bottom:30px}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;margin-bottom:5px;color:#555;font-weight:500}
+.form-group input{width:100%;padding:10px;border:1px solid #ddd;border-radius:5px;font-size:14px}
+.btn{width:100%;padding:12px;background:#667eea;color:#fff;border:none;border-radius:5px;font-size:16px;cursor:pointer;font-weight:600}
+.btn:hover{background:#5568d3}
+.error{background:#fee;border:1px solid #fcc;color:#c33;padding:10px;border-radius:5px;margin-bottom:15px}
+.info-box{background:#e3f2fd;border:1px solid #90caf9;color:#1976d2;padding:15px;border-radius:5px;margin-top:20px;font-size:13px}
+.header{background:#fff;padding:15px 0;box-shadow:0 2px 5px rgba(0,0,0,.1);margin-bottom:20px}
+.header-content{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.header h1{font-size:22px;color:#333}
+.user-info{display:flex;align-items:center;gap:15px}
+.sync-badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.sync-ok{background:#e8f5e9;color:#2e7d32}
+.sync-loading{background:#fff3e0;color:#f57c00}
+.sync-error{background:#ffebee;color:#c62828}
+.btn-logout{padding:8px 15px;background:#f44336;color:#fff;border:none;border-radius:5px;cursor:pointer}
+.tabs{background:#fff;border-bottom:1px solid #ddd;margin-bottom:20px}
+.tabs-nav{display:flex;gap:30px}
+.tab-btn{padding:15px 5px;background:none;border:none;border-bottom:3px solid transparent;color:#666;cursor:pointer;font-size:15px;font-weight:500}
+.tab-btn.active{color:#667eea;border-bottom-color:#667eea}
+.card{background:#fff;padding:25px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1);margin-bottom:20px}
+.card h2{margin-bottom:20px;color:#333}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:25px}
+.stat-card{background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.stat-card .label{color:#666;font-size:13px;margin-bottom:5px}
+.stat-card .value{font-size:32px;font-weight:bold}
+.stat-card.blue .value{color:#2196f3}
+.stat-card.purple .value{color:#9c27b0}
+.stat-card.green .value{color:#4caf50}
+.process-step{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;border-radius:5px;margin-bottom:8px}
+.process-step .count{font-size:22px;font-weight:bold}
+.process-step.blue{background:#e3f2fd}
+.process-step.blue .count{color:#1976d2}
+.process-step.green{background:#e8f5e9}
+.process-step.green .count{color:#388e3c}
+.process-step.purple{background:#f3e5f5}
+.process-step.purple .count{color:#7b1fa2}
+.process-step.orange{background:#fff3e0}
+.process-step.orange .count{color:#f57c00}
+.process-step.red{background:#ffebee}
+.process-step.red .count{color:#d32f2f}
+.applicant-item{border:1px solid #ddd;padding:15px;border-radius:5px;margin-bottom:10px}
+.applicant-item:hover{background:#f9f9f9}
+.applicant-header{display:flex;justify-content:space-between;align-items:start}
+.applicant-info h3{margin-bottom:5px;color:#333}
+.applicant-info p{color:#666;font-size:14px;margin-bottom:3px}
+.status-badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.status-new{background:#e3f2fd;color:#1976d2}
+.status-screened{background:#e8f5e9;color:#388e3c}
+.status-assessed{background:#f3e5f5;color:#7b1fa2}
+.status-interview_selected{background:#fff3e0;color:#f57c00}
+.status-interviewed{background:#ffebee;color:#d32f2f}
+.status-accepted{background:#c8e6c9;color:#2e7d32}
+.status-rejected{background:#ffcdd2;color:#c62828}
+.btn-add{padding:10px 20px;background:#667eea;color:#fff;border:none;border-radius:5px;cursor:pointer;font-weight:600}
+.auto-sync-info{background:#e8f5e9;border:1px solid #a5d6a7;padding:15px;border-radius:5px;margin-bottom:20px}
+.auto-sync-info p{color:#2e7d32;font-size:14px}
+</style>
 </head>
 <body>
-    <div id="loginScreen" class="login-screen">
-        <div class="login-box">
-            <h1>🎯 ระบบคัดกรองและสัมภาษณ์</h1>
-            <p>กระบวนการคัดกรองและสัมภาษณ์ตำแหน่งงาน</p>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label>ชื่อผู้ใช้</label>
-                    <input type="text" id="username" required>
-                </div>
-                <div class="form-group">
-                    <label>รหัสผ่าน</label>
-                    <input type="password" id="password" required>
-                </div>
-                <div id="loginError" class="error hidden"></div>
-                <button type="submit" class="btn">เข้าสู่ระบบ</button>
-            </form>
-            <div class="info-box">
-                <strong>ข้อมูลการเข้าสู่ระบบ:</strong><br>
-                Admin: admin / admin123<br>
-                HR: hr / hr123<br>
-                Interviewer: interviewer / interview123
-            </div>
-        </div>
-    </div>
 
-    <div id="mainApp" class="hidden">
-        <div class="header">
-            <div class="container">
-                <div class="header-content">
-                    <h1>🎯 ระบบคัดกรองและสัมภาษณ์</h1>
-                    <div class="user-info">
-                        <span id="syncBadge" class="sync-badge sync-loading">🔄 กำลัง sync...</span>
-                        <span>ยินดีต้อนรับ <strong id="userName"></strong></span>
-                        <button onclick="logout()" class="btn-logout">ออกจากระบบ</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div id="loginScreen" class="login-screen">
+<div class="login-box">
+<h1>🎯 ระบบคัดกรองและสัมภาษณ์</h1>
+<p>กระบวนการคัดกรองและสัมภาษณ์ตำแหน่งงาน</p>
+<form id="loginForm" onsubmit="doLogin(event)">
+<div class="form-group">
+<label>ชื่อผู้ใช้</label>
+<input type="text" id="username" required autocomplete="username">
+</div>
+<div class="form-group">
+<label>รหัสผ่าน</label>
+<input type="password" id="password" required autocomplete="current-password">
+</div>
+<div id="loginError" class="error hidden"></div>
+<button type="submit" class="btn">เข้าสู่ระบบ</button>
+</form>
+<div class="info-box">
+<strong>ข้อมูลการเข้าสู่ระบบ:</strong><br>
+Admin: admin / admin123<br>
+HR: hr / hr123<br>
+Interviewer: interviewer / interview123
+</div>
+</div>
+</div>
 
-        <div class="tabs">
-            <div class="container">
-                <div class="tabs-nav">
-                    <button onclick="showTab('dashboard', this)" class="tab-btn active">📊 Dashboard</button>
-                    <button onclick="showTab('applicants', this)" class="tab-btn">👥 ผู้สมัคร</button>
-                </div>
-            </div>
-        </div>
+<div id="mainApp" class="hidden">
+<div class="header">
+<div class="container">
+<div class="header-content">
+<h1>🎯 ระบบคัดกรองและสัมภาษณ์</h1>
+<div class="user-info">
+<span id="syncBadge" class="sync-badge sync-loading">🔄 กำลัง sync...</span>
+<span>ยินดีต้อนรับ <strong id="userName"></strong></span>
+<button onclick="logout()" class="btn-logout">ออกจากระบบ</button>
+</div>
+</div>
+</div>
+</div>
 
-        <div class="container">
-            <div id="dashboardTab" class="tab-content">
-                <div class="stats-grid">
-                    <div class="stat-card"><div class="label">ผู้สมัครทั้งหมด</div><div class="value" id="totalApplicants">0</div></div>
-                    <div class="stat-card blue"><div class="label">ผู้สมัครใหม่</div><div class="value" id="newApplicants">0</div></div>
-                    <div class="stat-card purple"><div class="label">ทำแบบทดสอบแล้ว</div><div class="value" id="assessedApplicants">0</div></div>
-                    <div class="stat-card green"><div class="label">สัมภาษณ์แล้ว</div><div class="value" id="interviewedApplicants">0</div></div>
-                </div>
-                <div class="card">
-                    <h2>📊 สถิติกระบวนการ</h2>
-                    <div id="processStats"></div>
-                </div>
-            </div>
+<div class="tabs">
+<div class="container">
+<div class="tabs-nav">
+<button onclick="showTab('dashboard',this)" class="tab-btn active">📊 Dashboard</button>
+<button onclick="showTab('applicants',this)" class="tab-btn">👥 ผู้สมัคร</button>
+</div>
+</div>
+</div>
 
-            <div id="applicantsTab" class="tab-content hidden">
-                <div class="auto-sync-info">
-                    <p>🔄 <strong>Auto-Sync เปิดอยู่</strong> — ระบบจะดึงข้อมูลใหม่ทุก 10 วินาทีอัตโนมัติ ทุกคนเห็นข้อมูลเดียวกันแบบ real-time</p>
-                </div>
-                <div class="card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0;">👥 รายชื่อผู้สมัคร</h2>
-                        <button onclick="showAddApplicantModal()" class="btn-add">+ เพิ่มผู้สมัคร</button>
-                    </div>
-                    <div id="applicantsList"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="container">
+<div id="dashboardTab" class="tab-content">
+<div class="stats-grid">
+<div class="stat-card"><div class="label">ผู้สมัครทั้งหมด</div><div class="value" id="totalApplicants">0</div></div>
+<div class="stat-card blue"><div class="label">ผู้สมัครใหม่</div><div class="value" id="newApplicants">0</div></div>
+<div class="stat-card purple"><div class="label">ทำแบบทดสอบแล้ว</div><div class="value" id="assessedApplicants">0</div></div>
+<div class="stat-card green"><div class="label">สัมภาษณ์แล้ว</div><div class="value" id="interviewedApplicants">0</div></div>
+</div>
+<div class="card">
+<h2>📊 สถิติกระบวนการ</h2>
+<div id="processStats"></div>
+</div>
+</div>
 
-    <script>
-        // ===== CONFIG =====
-        const DATA_URL = 'https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d';
-        let currentData = { applicants: [] };
-        let syncInterval = null;
-        let lastDataHash = '';
+<div id="applicantsTab" class="tab-content hidden">
+<div class="auto-sync-info">
+<p>🔄 <strong>Auto-Sync เปิดอยู่</strong> — ระบบจะดึงข้อมูลใหม่ทุก 10 วินาทีอัตโนมัติ ทุกคนเห็นข้อมูลเดียวกันแบบ real-time</p>
+</div>
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+<h2 style="margin:0">👥 รายชื่อผู้สมัคร</h2>
+<button onclick="addApplicant()" class="btn-add">+ เพิ่มผู้สมัคร</button>
+</div>
+<div id="applicantsList"></div>
+</div>
+</div>
+</div>
+</div>
 
-        // ===== DATA SYNC =====
-        async function loadData() {
-            try {
-                updateSyncBadge('loading', '🔄 กำลัง sync...');
-                const response = await fetch(DATA_URL, {
-                    headers: { 'Accept': 'application/json' }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    currentData = data || { applicants: [] };
-                    if (!currentData.applicants) currentData.applicants = [];
-                    lastDataHash = JSON.stringify(currentData.applicants);
-                    updateSyncBadge('ok', '✅ Sync แล้ว (' + new Date().toLocaleTimeString('th-TH') + ')');
-                    return true;
-                } else {
-                    throw new Error('HTTP ' + response.status);
-                }
-            } catch (error) {
-                console.error('Load error:', error);
-                updateSyncBadge('error', '❌ Sync ล้มเหลว');
-                return false;
-            }
-        }
+<script>
+var DATA_URL='https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d';
+var currentData={applicants:[]};
+var syncInterval=null;
 
-        async function saveData() {
-            try {
-                updateSyncBadge('loading', '🔄 กำลังบันทึก...');
-                currentData.lastUpdate = new Date().toISOString();
-                const response = await fetch(DATA_URL, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    body: JSON.stringify(currentData)
-                });
-                if (response.ok) {
-                    updateSyncBadge('ok', '✅ บันทึกแล้ว (' + new Date().toLocaleTimeString('th-TH') + ')');
-                    return true;
-                } else {
-                    throw new Error('HTTP ' + response.status);
-                }
-            } catch (error) {
-                console.error('Save error:', error);
-                updateSyncBadge('error', '❌ บันทึกล้มเหลว');
-                return false;
-            }
-        }
+function doLogin(e){
+e.preventDefault();
+var u=document.getElementById('username').value;
+var p=document.getElementById('password').value;
+var users={admin:{pass:'admin123',name:'ผู้ดูแลระบบ'},hr:{pass:'hr123',name:'ฝ่ายบุคคล'},interviewer:{pass:'interview123',name:'ผู้สัมภาษณ์'}};
+if(users[u]&&users[u].pass===p){
+localStorage.setItem('session',JSON.stringify({username:u,name:users[u].name}));
+showMainApp(users[u].name);
+}else{
+var err=document.getElementById('loginError');
+err.classList.remove('hidden');
+err.textContent='ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
+}
+}
 
-        function updateSyncBadge(status, text) {
-            const badge = document.getElementById('syncBadge');
-            badge.textContent = text;
-            badge.className = 'sync-badge';
-            if (status === 'ok') badge.classList.add('sync-ok');
-            else if (status === 'loading') badge.classList.add('sync-loading');
-            else badge.classList.add('sync-error');
-        }
+function showMainApp(name){
+document.getElementById('loginScreen').classList.add('hidden');
+document.getElementById('mainApp').classList.remove('hidden');
+document.getElementById('userName').textContent=name;
+loadData();
+if(syncInterval)clearInterval(syncInterval);
+syncInterval=setInterval(function(){loadData();render();},10000);
+}
 
-        function startAutoSync() {
-            if (syncInterval) clearInterval(syncInterval);
-            syncInterval = setInterval(async () => {
-                const loaded = await loadData();
-                if (loaded) {
-                    loadDashboard();
-                    if (!document.getElementById('applicantsTab').classList.contains('hidden')) {
-                        loadApplicants();
-                    }
-                }
-            }, 10000); // Auto-sync ทุก 10 วินาที
-        }
+function logout(){
+localStorage.removeItem('session');
+if(syncInterval)clearInterval(syncInterval);
+location.reload();
+}
 
-        // ===== LOGIN =====
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const users = {
-                'admin': { password: 'admin123', role: 'admin', name: 'ผู้ดูแลระบบ' },
-                'hr': { password: 'hr123', role: 'hr', name: 'ฝ่ายบุคคล' },
-                'interviewer': { password: 'interview123', role: 'interviewer', name: 'ผู้สัมภาษณ์' }
-            };
-            if (users[username] && users[username].password === password) {
-                localStorage.setItem('session', JSON.stringify({ username, role: users[username].role, name: users[username].name }));
-                await showMainApp(users[username]);
-            } else {
-                const err = document.getElementById('loginError');
-                err.classList.remove('hidden');
-                err.textContent = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
-            }
-        });
+function loadData(){
+updateSync('loading','🔄 กำลัง sync...');
+fetch(DATA_URL,{headers:{'Accept':'application/json'}})
+.then(function(r){return r.json();})
+.then(function(data){
+currentData=data||{applicants:[]};
+if(!currentData.applicants)currentData.applicants=[];
+updateSync('ok','✅ Sync แล้ว ('+new Date().toLocaleTimeString('th-TH')+')');
+render();
+})
+.catch(function(err){
+console.error(err);
+updateSync('error','❌ Sync ล้มเหลว');
+});
+}
 
-        async function showMainApp(user) {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            document.getElementById('userName').textContent = user.name;
-            await loadData();
-            loadDashboard();
-            startAutoSync();
-        }
+function saveData(){
+updateSync('loading','🔄 กำลังบันทึก...');
+currentData.lastUpdate=new Date().toISOString();
+return fetch(DATA_URL,{
+method:'PUT',
+headers:{'Content-Type':'application/json','Accept':'application/json'},
+body:JSON.stringify(currentData)
+}).then(function(r){
+if(r.ok){
+updateSync('ok','✅ บันทึกแล้ว ('+new Date().toLocaleTimeString('th-TH')+')');
+return true;
+}else{
+throw new Error('Save failed');
+}
+}).catch(function(err){
+console.error(err);
+updateSync('error','❌ บันทึกล้มเหลว');
+return false;
+});
+}
 
-        function logout() {
-            localStorage.removeItem('session');
-            if (syncInterval) clearInterval(syncInterval);
-            location.reload();
-        }
+function updateSync(status,text){
+var badge=document.getElementById('syncBadge');
+badge.textContent=text;
+badge.className='sync-badge';
+if(status==='ok')badge.classList.add('sync-ok');
+else if(status==='loading')badge.classList.add('sync-loading');
+else badge.classList.add('sync-error');
+}
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const session = localStorage.getItem('session');
-            if (session) showMainApp(JSON.parse(session));
-        });
+function render(){
+var a=currentData.applicants||[];
+var stats={total:a.length,new:a.filter(function(x){return x.status==='new';}).length,screened:a.filter(function(x){return x.status==='screened';}).length,assessed:a.filter(function(x){return x.status==='assessed';}).length,interview_selected:a.filter(function(x){return x.status==='interview_selected';}).length,interviewed:a.filter(function(x){return x.status==='interviewed';}).length,accepted:a.filter(function(x){return x.status==='accepted';}).length,rejected:a.filter(function(x){return x.status==='rejected';}).length};
+document.getElementById('totalApplicants').textContent=stats.total;
+document.getElementById('newApplicants').textContent=stats.new;
+document.getElementById('assessedApplicants').textContent=stats.assessed;
+document.getElementById('interviewedApplicants').textContent=stats.interviewed;
+var steps=[{name:'ผู้สมัครใหม่',count:stats.new,color:'blue'},{name:'ผ่านการคัดเลือก',count:stats.screened,color:'green'},{name:'ทำแบบทดสอบ',count:stats.assessed,color:'purple'},{name:'ได้เข้าสัมภาษณ์',count:stats.interview_selected,color:'orange'},{name:'สัมภาษณ์แล้ว',count:stats.interviewed,color:'red'},{name:'รับเข้าทำงาน',count:stats.accepted,color:'green'},{name:'ไม่ผ่าน',count:stats.rejected,color:'red'}];
+document.getElementById('processStats').innerHTML=steps.map(function(s){return '<div class="process-step '+s.color+'"><span class="name">'+s.name+'</span><span class="count">'+s.count+'</span></div>';}).join('');
+if(a.length===0){
+document.getElementById('applicantsList').innerHTML='<p style="text-align:center;color:#999;padding:40px">ยังไม่มีข้อมูลผู้สมัคร</p>';
+}else{
+document.getElementById('applicantsList').innerHTML=a.map(function(item){return '<div class="applicant-item"><div class="applicant-header"><div class="applicant-info"><h3>'+(item.fullName||'-')+'</h3><p>'+(item.position||'-')+' | '+(item.department||'-')+'</p><p>'+(item.email||'-')+' | '+(item.phone||'-')+'</p></div><div><span class="status-badge status-'+item.status+'">'+getStatusText(item.status)+'</span><p style="font-size:12px;color:#999;margin-top:5px">'+formatDate(item.applyDate)+'</p></div></div></div>';}).join('');
+}
+}
 
-        // ===== TABS =====
-        function showTab(tabName, btn) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabName + 'Tab').classList.remove('hidden');
-            btn.classList.add('active');
-            if (tabName === 'dashboard') loadDashboard();
-            if (tabName === 'applicants') loadApplicants();
-        }
+function getStatusText(s){
+var map={new:'ใหม่',screened:'ผ่านการคัดเลือก',assessed:'ทำแบบทดสอบแล้ว',interview_selected:'ได้เข้าสัมภาษณ์',interviewed:'สัมภาษณ์แล้ว',accepted:'รับเข้าทำงาน',rejected:'ไม่ผ่าน'};
+return map[s]||s;
+}
 
-        // ===== DASHBOARD =====
-        function loadDashboard() {
-            const a = currentData.applicants || [];
-            const stats = {
-                total: a.length,
-                new: a.filter(x => x.status === 'new').length,
-                screened: a.filter(x => x.status === 'screened').length,
-                assessed: a.filter(x => x.status === 'assessed').length,
-                interview_selected: a.filter(x => x.status === 'interview_selected').length,
-                interviewed: a.filter(x => x.status === 'interviewed').length,
-                accepted: a.filter(x => x.status === 'accepted').length,
-                rejected: a.filter(x => x.status === 'rejected').length
-            };
-            document.getElementById('totalApplicants').textContent = stats.total;
-            document.getElementById('newApplicants').textContent = stats.new;
-            document.getElementById('assessedApplicants').textContent = stats.assessed;
-            document.getElementById('interviewedApplicants').textContent = stats.interviewed;
-            const steps = [
-                { name: 'ผู้สมัครใหม่', count: stats.new, color: 'blue' },
-                { name: 'ผ่านการคัดเลือก', count: stats.screened, color: 'green' },
-                { name: 'ทำแบบทดสอบ', count: stats.assessed, color: 'purple' },
-                { name: 'ได้เข้าสัมภาษณ์', count: stats.interview_selected, color: 'orange' },
-                { name: 'สัมภาษณ์แล้ว', count: stats.interviewed, color: 'red' },
-                { name: 'รับเข้าทำงาน', count: stats.accepted, color: 'green' },
-                { name: 'ไม่ผ่าน', count: stats.rejected, color: 'red' }
-            ];
-            document.getElementById('processStats').innerHTML = steps.map(s =>
-                '<div class="process-step ' + s.color + '"><span class="name">' + s.name + '</span><span class="count">' + s.count + '</span></div>'
-            ).join('');
-        }
+function formatDate(d){
+if(!d)return '-';
+return new Date(d).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'});
+}
 
-        // ===== APPLICANTS =====
-        function loadApplicants() {
-            const a = currentData.applicants || [];
-            if (a.length === 0) {
-                document.getElementById('applicantsList').innerHTML = '<p style="text-align:center;color:#999;padding:40px;">ยังไม่มีข้อมูลผู้สมัคร</p>';
-                return;
-            }
-            document.getElementById('applicantsList').innerHTML = a.map(item =>
-                '<div class="applicant-item"><div class="applicant-header"><div class="applicant-info"><h3>' + (item.fullName || '-') + '</h3><p>' + (item.position || '-') + ' | ' + (item.department || '-') + '</p><p>' + (item.email || '-') + ' | ' + (item.phone || '-') + '</p></div><div><span class="status-badge status-' + item.status + '">' + getStatusText(item.status) + '</span><p style="font-size:12px;color:#999;margin-top:5px;">' + formatDate(item.applyDate) + '</p></div></div></div>'
-            ).join('');
-        }
+function addApplicant(){
+var fullName=prompt('ชื่อ-นามสกุล:');
+if(!fullName)return;
+var position=prompt('ตำแหน่ง:')||'';
+var email=prompt('Email:')||'';
+var phone=prompt('เบอร์โทร:')||'';
+var department=prompt('แผนก:')||'';
+var applicant={id:'APP-'+Date.now(),fullName:fullName,position:position,email:email,phone:phone,department:department,applyDate:new Date().toISOString().split('T')[0],status:'new',createdAt:new Date().toISOString()};
+currentData.applicants.push(applicant);
+saveData().then(function(ok){
+if(ok){
+render();
+alert('✅ เพิ่มผู้สมัครสำเร็จ! ข้อมูล sync ไปยังทีมแล้ว');
+}else{
+alert('❌ บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง');
+}
+});
+}
 
-        function getStatusText(s) {
-            return { new:'ใหม่', screened:'ผ่านการคัดเลือก', assessed:'ทำแบบทดสอบแล้ว', interview_selected:'ได้เข้าสัมภาษณ์', interviewed:'สัมภาษณ์แล้ว', accepted:'รับเข้าทำงาน', rejected:'ไม่ผ่าน' }[s] || s;
-        }
+function showTab(tabName,btn){
+document.querySelectorAll('.tab-content').forEach(function(el){el.classList.add('hidden');});
+document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+document.getElementById(tabName+'Tab').classList.remove('hidden');
+btn.classList.add('active');
+render();
+}
 
-        function formatDate(d) {
-            if (!d) return '-';
-            return new Date(d).toLocaleDateString('th-TH', { year:'numeric', month:'short', day:'numeric' });
-        }
-
-        async function showAddApplicantModal() {
-            const fullName = prompt('ชื่อ-นามสกุล:');
-            if (!fullName) return;
-            const position = prompt('ตำแหน่ง:') || '';
-            const email = prompt('Email:') || '';
-            const phone = prompt('เบอร์โทร:') || '';
-            const department = prompt('แผนก:') || '';
-            
-            const applicant = {
-                id: 'APP-' + Date.now(),
-                fullName, position, email, phone, department,
-                applyDate: new Date().toISOString().split('T')[0],
-                status: 'new',
-                createdAt: new Date().toISOString()
-            };
-            
-            currentData.applicants.push(applicant);
-            const saved = await saveData();
-            if (saved) {
-                loadApplicants();
-                loadDashboard();
-                alert('✅ เพิ่มผู้สมัครสำเร็จ! ข้อมูล sync ไปยังทีมแล้ว');
-            } else {
-                alert('❌ บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง');
-            }
-        }
-    </script>
+// Check session on load
+window.onload=function(){
+var session=localStorage.getItem('session');
+if(session){
+var s=JSON.parse(session);
+showMainApp(s.name);
+}
+};
+</script>
 </body>
 </html>
