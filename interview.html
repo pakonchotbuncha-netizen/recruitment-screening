@@ -1,89 +1,259 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>สัมภาษณ์ - กระบวนการคัดกรองและสัมภาษณ์</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>สัมภาษณ์ผู้สมัคร</title>
+<style>
+body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+.container { max-width: 800px; margin: 0 auto; }
+.card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+h1 { color: #333; }
+h2 { color: #ff9800; margin-top: 30px; }
+.applicant-info { background: #fff3e0; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+.applicant-info h3 { margin: 0 0 10px 0; color: #e65100; }
+.applicant-info p { margin: 5px 0; }
+.schedule { background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+.schedule h3 { margin: 0 0 15px 0; color: #1976d2; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+.form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+.question { margin-bottom: 25px; padding: 20px; background: #f9f9f9; border-radius: 8px; }
+.question p { font-weight: 600; margin-bottom: 15px; }
+.interviewers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px; }
+.interviewer { text-align: center; padding: 10px; background: #e8f5e9; border-radius: 5px; }
+.interviewer-label { font-size: 12px; color: #2e7d32; font-weight: 600; }
+.options { display: flex; gap: 10px; }
+.option { flex: 1; text-align: center; }
+.option input[type="radio"] { display: none; }
+.option label { display: block; padding: 10px; border: 2px solid #ddd; border-radius: 5px; cursor: pointer; font-weight: 600; }
+.option input[type="radio"]:checked + label { border-color: #ff9800; background: #fff3e0; }
+.btn { padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 16px; }
+.btn-submit { background: #4caf50; color: white; width: 100%; margin-top: 20px; }
+.btn-submit:hover { background: #388e3c; }
+.btn-back { background: #757575; color: white; margin-right: 10px; }
+.btn-back:hover { background: #616161; }
+.success { background: #c8e6c9; padding: 20px; border-radius: 8px; text-align: center; }
+.success h2 { color: #2e7d32; margin: 0 0 10px 0; }
+</style>
 </head>
-<body class="bg-gray-50">
-    <header class="bg-gradient-to-r from-red-600 to-pink-700 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold">🎤 กระบวนการสัมภาษณ์</h1>
-                    <p class="text-red-100 mt-1">Step 5-8: คัดเลือก → ตอบรับ → สัมภาษณ์ → ให้คะแนน</p>
-                </div>
-                <a href="applicants.html" class="bg-white text-red-600 px-4 py-2 rounded-lg hover:bg-red-50">
-                    ← กลับหน้ารายชื่อ
-                </a>
-            </div>
-        </div>
-    </header>
+<body>
+<div class="container">
+<h1>🎤 สัมภาษณ์ผู้สมัคร</h1>
 
-    <main class="container mx-auto px-4 py-8">
-        <!-- Step 5: Select for Interview -->
-        <section class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-bold mb-4 flex items-center">
-                <span class="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">5</span>
-                คัดเลือกเข้าสัมภาษณ์ P2
-            </h2>
-            <div id="selectedList" class="space-y-2">
-                <!-- Selected applicants -->
-            </div>
-        </section>
+<div id="interviewContent">
+<div class="applicant-info" id="applicantInfo"></div>
 
-        <!-- Step 6: Interview Confirmation -->
-        <section class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-bold mb-4 flex items-center">
-                <span class="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">6</span>
-                การตอบรับการสัมภาษณ์
-            </h2>
-            <div id="confirmationList" class="space-y-2">
-                <!-- Confirmation status -->
-            </div>
-        </section>
+<div class="card">
+<h2>📅 นัดวันสัมภาษณ์</h2>
+<div class="schedule">
+<div class="form-group">
+<label>วันที่สัมภาษณ์:</label>
+<input type="date" id="interviewDate">
+</div>
+<div class="form-group">
+<label>เวลา:</label>
+<input type="time" id="interviewTime">
+</div>
+<div class="form-group">
+<label>ห้องสัมภาษณ์:</label>
+<select id="interviewRoom">
+<option value="">-- เลือกห้อง --</option>
+<option value="ห้องประชุม A">ห้องประชุม A</option>
+<option value="ห้องประชุม B">ห้องประชุม B</option>
+<option value="ห้องประชุม C">ห้องประชุม C</option>
+<option value="Online (Zoom)">Online (Zoom)</option>
+</select>
+</div>
+</div>
 
-        <!-- Step 7: AI Generated Interview Form -->
-        <section class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-bold mb-4 flex items-center">
-                <span class="bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">7</span>
-                แบบสัมภาษณ์ (AI สร้างอัตโนมัติ)
-            </h2>
-            <div id="interviewForm">
-                <button onclick="generateInterviewForm()" class="w-full bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 font-semibold">
-                    🤖 สร้างแบบสัมภาษณ์ด้วย AI
-                </button>
-            </div>
-        </section>
+<h2>📝 คำถามสัมภาษณ์</h2>
+<div id="interviewQuestions"></div>
 
-        <!-- Step 8: Interview Scoring -->
-        <section class="bg-white rounded-lg shadow-md p-6 mb-6">
-            <h2 class="text-xl font-bold mb-4 flex items-center">
-                <span class="bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-2 text-sm">8</span>
-                ให้คะแนนการสัมภาษณ์ (5 ผู้สัมภาษณ์)
-            </h2>
-            <div id="scoringSection">
-                <div id="interviewerScores" class="space-y-4">
-                    <!-- Scoring forms for 5 interviewers -->
-                </div>
-                <button onclick="submitInterviewScores()" class="w-full mt-4 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 font-semibold">
-                    ✅ ส่งคะแนนการสัมภาษณ์
-                </button>
-            </div>
-        </section>
+<h2>👥 ให้คะแนนจากผู้สัมภาษณ์ 5 คน</h2>
+<div id="interviewerScoring"></div>
 
-        <!-- Navigation -->
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <button onclick="goToSummary()" class="w-full bg-indigo-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 font-semibold">
-                → ไปหน้าสรุปผล (Step 9)
-            </button>
-        </div>
-    </main>
+<div class="form-group">
+<label>ความคิดเห็นเพิ่มเติม:</label>
+<textarea id="interviewComment" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;"></textarea>
+</div>
 
-    <script src="js/data-store.js"></script>
-    <script src="js/interview.js"></script>
+<button class="btn btn-submit" onclick="submitInterview()">✅ ส่งคะแนนสัมภาษณ์</button>
+</div>
+</div>
+
+<div id="successMessage" class="success" style="display:none;">
+<h2>✅ ส่งคะแนนสำเร็จ!</h2>
+<p>ระบบได้บันทึกคะแนนและอัปเดตสถานะผู้สมัครแล้ว</p>
+<button class="btn btn-back" onclick="goBack()">← กลับไปหน้าหลัก</button>
+</div>
+</div>
+
+<script>
+// โหลดข้อมูลผู้สมัคร
+var applicant = JSON.parse(localStorage.getItem('currentApplicant') || 'null');
+
+if (!applicant) {
+    alert('ไม่พบข้อมูลผู้สมัคร');
+    window.location.href = 'index.html';
+}
+
+// แสดงข้อมูลผู้สมัคร
+document.getElementById('applicantInfo').innerHTML = 
+    '<h3>' + applicant.fullName + '</h3>' +
+    '<p><strong>ตำแหน่ง:</strong> ' + (applicant.position || '-') + '</p>' +
+    '<p><strong>วันที่สมัคร:</strong> ' + (applicant.applyDate || '-') + '</p>';
+
+// คำถามสัมภาษณ์
+var questions = [
+    { id: 'q1', text: 'เล่าเกี่ยวกับประสบการณ์ทำงานที่เกี่ยวข้องกับตำแหน่งนี้' },
+    { id: 'q2', text: 'ทำไมคุณถึงสนใจตำแหน่งนี้และบริษัทของเรา' },
+    { id: 'q3', text: 'คุณมีจุดแข็งและจุดอ่อนอะไรบ้าง' },
+    { id: 'q4', text: 'เล่าสถานการณ์ที่คุณต้องแก้ปัญหาที่ยากลำบาก' },
+    { id: 'q5', text: 'คุณทำงานเป็นทีมอย่างไร' },
+    { id: 'q6', text: 'คุณมีเป้าหมายในอาชีพอะไรบ้าง' }
+];
+
+// สร้างคำถาม
+var questionsHtml = questions.map(function(q, index) {
+    return '<div class="question">' +
+           '<p>' + (index + 1) + '. ' + q.text + '</p>' +
+           '<textarea id="' + q.id + '_answer" rows="3" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;" placeholder="คำตอบ..."></textarea>' +
+           '</div>';
+}).join('');
+document.getElementById('interviewQuestions').innerHTML = questionsHtml;
+
+// สร้างผู้สัมภาษณ์ 5 คน
+var interviewers = [
+    { id: 'int1', name: 'ผู้สัมภาษณ์ 1' },
+    { id: 'int2', name: 'ผู้สัมภาษณ์ 2' },
+    { id: 'int3', name: 'ผู้สัมภาษณ์ 3' },
+    { id: 'int4', name: 'ผู้สัมภาษณ์ 4' },
+    { id: 'int5', name: 'ผู้สัมภาษณ์ 5' }
+];
+
+var scoringHtml = '<div style="margin-bottom: 20px;"><strong>ให้คะแนนแต่ละข้อ (1-5):</strong></div>';
+
+questions.forEach(function(q, qIndex) {
+    scoringHtml += '<div class="question">' +
+                   '<p><strong>ข้อ ' + (qIndex + 1) + ':</strong> ' + q.text + '</p>' +
+                   '<div class="interviewers">';
+    
+    interviewers.forEach(function(int) {
+        scoringHtml += '<div class="interviewer">' +
+                       '<div class="interviewer-label">' + int.name + '</div>' +
+                       '<div class="options" style="margin-top: 10px;">';
+        
+        for (var i = 1; i <= 5; i++) {
+            scoringHtml += '<div class="option">' +
+                          '<input type="radio" name="' + q.id + '_' + int.id + '" value="' + i + '" id="' + q.id + '_' + int.id + '_' + i + '">' +
+                          '<label for="' + q.id + '_' + int.id + '_' + i + '">' + i + '</label>' +
+                          '</div>';
+        }
+        
+        scoringHtml += '</div></div>';
+    });
+    
+    scoringHtml += '</div></div>';
+});
+
+document.getElementById('interviewerScoring').innerHTML = scoringHtml;
+
+function submitInterview() {
+    // ตรวจสอบวันสัมภาษณ์
+    var interviewDate = document.getElementById('interviewDate').value;
+    var interviewTime = document.getElementById('interviewTime').value;
+    var interviewRoom = document.getElementById('interviewRoom').value;
+    
+    if (!interviewDate || !interviewTime || !interviewRoom) {
+        alert('กรุณากรอกข้อมูลการนัดสัมภาษณ์ให้ครบ');
+        return;
+    }
+    
+    // รวบรวมคำตอบ
+    var answers = {};
+    questions.forEach(function(q) {
+        answers[q.id] = document.getElementById(q.id + '_answer').value;
+    });
+    
+    // รวบรวมคะแนน
+    var scores = {};
+    var allScored = true;
+    
+    questions.forEach(function(q) {
+        scores[q.id] = {};
+        interviewers.forEach(function(int) {
+            var selected = document.querySelector('input[name="' + q.id + '_' + int.id + '"]:checked');
+            if (!selected) {
+                allScored = false;
+            } else {
+                scores[q.id][int.id] = parseInt(selected.value);
+            }
+        });
+    });
+    
+    if (!allScored) {
+        alert('กรุณาให้คะแนนทุกข้อจากผู้สัมภาษณ์ทั้ง 5 คน');
+        return;
+    }
+    
+    // คำนวณคะแนนเฉลี่ย
+    var totalScore = 0;
+    var totalMax = 0;
+    
+    questions.forEach(function(q) {
+        interviewers.forEach(function(int) {
+            totalScore += scores[q.id][int.id];
+            totalMax += 5;
+        });
+    });
+    
+    var percentage = ((totalScore / totalMax) * 100).toFixed(1);
+    
+    // บันทึกผล
+    var interview = {
+        applicantId: applicant.id,
+        interviewDate: interviewDate,
+        interviewTime: interviewTime,
+        interviewRoom: interviewRoom,
+        answers: answers,
+        scores: scores,
+        totalScore: totalScore,
+        maxScore: totalMax,
+        percentage: percentage,
+        comment: document.getElementById('interviewComment').value,
+        submittedAt: new Date().toISOString()
+    };
+    
+    // เก็บใน localStorage
+    var interviews = JSON.parse(localStorage.getItem('interviews') || '[]');
+    interviews.push(interview);
+    localStorage.setItem('interviews', JSON.stringify(interviews));
+    
+    // อัปเดตสถานะผู้สมัคร
+    applicant.status = 'interviewed';
+    applicant.interviewDate = interviewDate;
+    applicant.interviewTime = interviewTime;
+    applicant.interviewRoom = interviewRoom;
+    
+    // เก็บข้อมูลผู้สมัครที่อัปเดต
+    var applicantsData = JSON.parse(localStorage.getItem('applicantsData') || '[]');
+    var index = applicantsData.findIndex(function(x) { return x.id === applicant.id; });
+    if (index >= 0) {
+        applicantsData[index] = applicant;
+    } else {
+        applicantsData.push(applicant);
+    }
+    localStorage.setItem('applicantsData', JSON.stringify(applicantsData));
+    
+    // แสดงข้อความสำเร็จ
+    document.getElementById('interviewContent').style.display = 'none';
+    document.getElementById('successMessage').style.display = 'block';
+}
+
+function goBack() {
+    window.location.href = 'index.html';
+}
+</script>
 </body>
 </html>
