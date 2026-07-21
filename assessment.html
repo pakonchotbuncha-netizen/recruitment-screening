@@ -3,64 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>แบบทดสอบผู้สมัคร</title>
+<title>แบบทดสอบผู้สมัคร - 23 ข้อ</title>
 <style>
 body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-.container { max-width: 800px; margin: 0 auto; }
+.container { max-width: 900px; margin: 0 auto; }
 .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
-h1 { color: #333; }
-h2 { color: #9c27b0; margin-top: 30px; }
+h1 { color: #333; margin-bottom: 10px; }
+h2 { color: #9c27b0; margin-top: 30px; margin-bottom: 20px; }
 .applicant-info { background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
 .applicant-info h3 { margin: 0 0 10px 0; color: #1976d2; }
 .applicant-info p { margin: 5px 0; }
-.question { margin-bottom: 25px; padding: 20px; background: #f9f9f9; border-radius: 8px; }
-.question p { font-weight: 600; margin-bottom: 15px; }
+.progress { background: #e0e0e0; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, #9c27b0, #e91e63); transition: width 0.3s; }
+.question { margin-bottom: 25px; padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #9c27b0; }
+.question p { font-weight: 600; margin-bottom: 15px; color: #333; }
 .options { display: flex; flex-direction: column; gap: 10px; }
-.option { display: flex; align-items: center; }
+.option { display: flex; align-items: center; padding: 10px; background: white; border: 2px solid #ddd; border-radius: 5px; cursor: pointer; transition: all 0.2s; }
+.option:hover { border-color: #9c27b0; background: #f3e5f5; }
 .option input[type="radio"] { margin-right: 10px; }
 .option label { cursor: pointer; flex: 1; }
+.option input[type="radio"]:checked + label { font-weight: 600; color: #9c27b0; }
 .btn { padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 16px; }
 .btn-submit { background: #4caf50; color: white; width: 100%; margin-top: 20px; }
 .btn-submit:hover { background: #388e3c; }
 .btn-back { background: #757575; color: white; margin-right: 10px; }
 .btn-back:hover { background: #616161; }
-.success { background: #c8e6c9; padding: 20px; border-radius: 8px; text-align: center; }
-.success h2 { color: #2e7d32; margin: 0 0 10px 0; }
+.success { background: #c8e6c9; padding: 30px; border-radius: 8px; text-align: center; }
+.success h2 { color: #2e7d32; margin: 0 0 15px 0; }
+.score-summary { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; }
+.score-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+.score-item:last-child { border-bottom: none; font-weight: 600; }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>📝 แบบทดสอบผู้สมัคร</h1>
+<h1>📝 แบบทดสอบผู้สมัคร (23 ข้อ)</h1>
+<p>แบบทดสอบทัศนคติ ทักษะ ทุนองค์กร (CC) และ 3E3P</p>
 
 <div id="assessmentContent">
 <div class="applicant-info" id="applicantInfo"></div>
 
+<div class="progress">
+<div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+</div>
+<p style="text-align: center; color: #666; margin-bottom: 20px;">ตอบแล้ว: <span id="answeredCount">0</span> / 23 ข้อ</p>
+
 <div class="card">
-<h2>🎯 แบบทดสอบทัศนคติ</h2>
+<h2>🎯 แบบทดสอบทัศนคติ (5 ข้อ)</h2>
 <div id="attitudeQuestions"></div>
 
-<h2>💡 แบบทดสอบทักษะ</h2>
+<h2>💡 แบบทดสอบทักษะ (5 ข้อ)</h2>
 <div id="skillQuestions"></div>
 
-<h2>🏢 แบบทดสอบทุนองค์กร (CC)</h2>
+<h2>🏢 แบบทดสอบทุนองค์กร CC (7 ข้อ)</h2>
 <div id="ccQuestions"></div>
 
-<h2>📊 แบบทดสอบ 3E3P</h2>
+<h2>📊 แบบทดสอบ 3E3P (6 ข้อ)</h2>
 <div id="3e3pQuestions"></div>
 
-<button class="btn btn-submit" onclick="submitAssessment()">✅ ส่งคะแนน</button>
+<button class="btn btn-submit" onclick="submitAssessment()">✅ ส่งคะแนน (23 ข้อ)</button>
 </div>
 </div>
 
 <div id="successMessage" class="success" style="display:none;">
 <h2>✅ ส่งคะแนนสำเร็จ!</h2>
-<p>ระบบได้บันทึกคะแนนและอัปเดตสถานะผู้สมัครแล้ว</p>
-<button class="btn btn-back" onclick="goBack()">← กลับไปหน้าหลัก</button>
+<div class="score-summary" id="scoreSummary"></div>
+<button class="btn btn-back" onclick="goBack()" style="margin-top: 20px;">← กลับไปหน้าหลัก</button>
 </div>
 </div>
 
 <script>
-// โหลดข้อมูลผู้สมัคร
+// Embed ข้อมูลผู้สมัคร
 var applicant = JSON.parse(localStorage.getItem('currentApplicant') || 'null');
 
 if (!applicant) {
@@ -74,48 +87,19 @@ document.getElementById('applicantInfo').innerHTML =
     '<p><strong>ตำแหน่ง:</strong> ' + (applicant.position || '-') + '</p>' +
     '<p><strong>วันที่สมัคร:</strong> ' + (applicant.applyDate || '-') + '</p>';
 
-// แบบทดสอบ
-var questions = {
-    attitude: [
-        { id: 'att1', text: 'ท่านรู้สึกอย่างไรเมื่อต้องทำงานภายใต้ความกดดัน?' },
-        { id: 'att2', text: 'เมื่อเกิดข้อขัดแย้งในทีม ท่านจะทำอย่างไร?' },
-        { id: 'att3', text: 'ท่านมีทัศนคติต่อการเปลี่ยนแปลงอย่างไร?' }
-    ],
-    skill: [
-        { id: 'skill1', text: 'ท่านสามารถวางแผนและจัดลำดับความสำคัญของงานได้อย่างไร?' },
-        { id: 'skill2', text: 'ทักษะการสื่อสารและการนำเสนอของท่านเป็นอย่างไร?' },
-        { id: 'skill3', text: 'ท่านสามารถแก้ปัญหาที่ซับซ้อนได้อย่างไร?' }
-    ],
-    cc: [
-        { id: 'cc1', text: 'CC1: ความเก่งในการนำผู้รับใช้ (Servant Leadership)' },
-        { id: 'cc2', text: 'CC2: ความเก่งในการปรับตัวและสร้างนวัตกรรม' },
-        { id: 'cc3', text: 'CC3: ความเก่งในการสร้างคุณค่าบนฐานความไว้วางใจ' }
-    ],
-    '3e3p': [
-        { id: '3e1', text: '3E: Energy - ท่านมีพลังงานและแรงจูงใจในการทำงานอย่างไร?' },
-        { id: '3e2', text: '3E: Enthusiasm - ท่านมีความกระตือรือร้นต่องานอย่างไร?' },
-        { id: '3e3', text: '3E: Execution - ท่านสามารถแปลงแผนไปสู่การปฏิบัติได้อย่างไร?' }
-    ]
-};
-
-var options = [
-    { value: 1, text: 'ต้องปรับปรุงมาก' },
-    { value: 2, text: 'ต้องปรับปรุง' },
-    { value: 3, text: 'ปานกลาง' },
-    { value: 4, text: 'ดี' },
-    { value: 5, text: 'ดีมาก' }
-];
+// Embed แบบทดสอบ 23 ข้อ
+var questions = {"attitude": [{"id": "att1", "question": "ท่านรู้สึกอย่างไรเมื่อต้องทำงานภายใต้ความกดดัน?", "options": [{"value": 1, "text": "รู้สึกเครียดและหลีกเลี่ยง"}, {"value": 2, "text": "พยายามทนทำต่อไป"}, {"value": 3, "text": "หาวิธีจัดการกับความกดดัน"}, {"value": 4, "text": "มองว่าเป็นความท้าทายและเรียนรู้"}, {"value": 5, "text": "ใช้โอกาสพัฒนาตัวเองและทีม"}]}, {"id": "att2", "question": "เมื่อเกิดข้อขัดแย้งในทีม ท่านจะทำอย่างไร?", "options": [{"value": 1, "text": "หลีกเลี่ยงและไม่เข้าร่วม"}, {"value": 2, "text": "รอให้คนอื่นแก้ไข"}, {"value": 3, "text": "พยายามประนีประนอม"}, {"value": 4, "text": "รับฟังทุกฝ่ายและหาทางออก"}, {"value": 5, "text": "สร้างฉันทมติและเรียนรู้จากความขัดแย้ง"}]}, {"id": "att3", "question": "ท่านมีทัศนคติต่อการเปลี่ยนแปลงอย่างไร?", "options": [{"value": 1, "text": "ไม่ชอบเปลี่ยนแปลง ยึดติดกับวิธีเดิม"}, {"value": 2, "text": "ยอมรับแต่รู้สึกไม่สบายใจ"}, {"value": 3, "text": "ปรับตัวได้แต่ต้องใช้เวลา"}, {"value": 4, "text": "ยอมรับและมองหาโอกาสใหม่"}, {"value": 5, "text": "กระตือรือร้นและริเริ่มเปลี่ยนแปลง"}]}, {"id": "att4", "question": "เมื่อทำงานสำเร็จ ท่านรู้สึกอย่างไร?", "options": [{"value": 1, "text": "พอใจแค่ตัวเอง"}, {"value": 2, "text": "ดีใจแต่ไม่แบ่งปัน"}, {"value": 3, "text": "ขอบคุณทีมที่ช่วย"}, {"value": 4, "text": "ยกความดีให้ทีมและเรียนรู้"}, {"value": 5, "text": "แบ่งปันความสำเร็จและสร้างแรงบันดาลใจ"}]}, {"id": "att5", "question": "ท่านจัดการกับข้อผิดพลาดอย่างไร?", "options": [{"value": 1, "text": "โทษคนอื่นหรือสถานการณ์"}, {"value": 2, "text": "รู้สึกผิดและหลีกเลี่ยง"}, {"value": 3, "text": "ยอมรับและแก้ไข"}, {"value": 4, "text": "เรียนรู้และป้องกันไม่ให้เกิดซ้ำ"}, {"value": 5, "text": "แบ่งปันบทเรียนและช่วยทีมเรียนรู้"}]}], "skill": [{"id": "skill1", "question": "ท่านสามารถวางแผนและจัดลำดับความสำคัญของงานได้อย่างไร?", "options": [{"value": 1, "text": "ทำตามที่บอกเท่านั้น"}, {"value": 2, "text": "พยายามจัดลำดับแต่ยังสับสน"}, {"value": 3, "text": "สามารถจัดลำดับงานพื้นฐานได้"}, {"value": 4, "text": "วางแผนและจัดลำดับได้อย่างมีประสิทธิภาพ"}, {"value": 5, "text": "วางแผนเชิงกลยุทธ์และปรับตัวได้ตามสถานการณ์"}]}, {"id": "skill2", "question": "ทักษะการสื่อสารและการนำเสนอของท่านเป็นอย่างไร?", "options": [{"value": 1, "text": "กลัวการพูดต่อหน้าคนอื่น"}, {"value": 2, "text": "สื่อสารได้แต่ไม่ชัดเจน"}, {"value": 3, "text": "สื่อสารและนำเสนอได้ดีในระดับหนึ่ง"}, {"value": 4, "text": "สื่อสารชัดเจนและโน้มน้าวได้"}, {"value": 5, "text": "เป็นนักสื่อสารที่ยอดเยี่ยมและสร้างแรงบันดาลใจ"}]}, {"id": "skill3", "question": "ท่านสามารถแก้ปัญหาที่ซับซ้อนได้อย่างไร?", "options": [{"value": 1, "text": "หลีกเลี่ยงปัญหาที่ซับซ้อน"}, {"value": 2, "text": "พยายามแก้แต่ยังขาดระบบ"}, {"value": 3, "text": "วิเคราะห์และแก้ปัญหาเป็นขั้นตอน"}, {"value": 4, "text": "ใช้ข้อมูลและวิเคราะห์อย่างมีระบบ"}, {"value": 5, "text": "คิดค้นแนวทางใหม่และป้องกันปัญหาล่วงหน้า"}]}, {"id": "skill4", "question": "ท่านทำงานเป็นทีมอย่างไร?", "options": [{"value": 1, "text": "ชอบทำงานคนเดียว"}, {"value": 2, "text": "ทำงานตามที่ได้รับมอบหมาย"}, {"value": 3, "text": "ร่วมมือและช่วยเหลือทีม"}, {"value": 4, "text": "สร้างบรรยากาศทีมที่ดี"}, {"value": 5, "text": "เป็นผู้นำทีมและสร้างแรงบันดาลใจ"}]}, {"id": "skill5", "question": "ท่านเรียนรู้สิ่งใหม่อย่างไร?", "options": [{"value": 1, "text": "ไม่ชอบเรียนรู้สิ่งใหม่"}, {"value": 2, "text": "เรียนรู้เมื่อจำเป็น"}, {"value": 3, "text": "เรียนรู้และพัฒนาตัวเองอย่างต่อเนื่อง"}, {"value": 4, "text": "แสวงหาความรู้ใหม่อยู่เสมอ"}, {"value": 5, "text": "แบ่งปันความรู้และสร้างวัฒนธรรมการเรียนรู้"}]}], "cc": [{"id": "cc1", "question": "CC1: ความเก่งในการนำผู้รับใช้ (Servant Leadership)", "options": [{"value": 1, "text": "ยังไม่เข้าใจแนวคิด"}, {"value": 2, "text": "เข้าใจแต่ยังปฏิบัติไม่ได้"}, {"value": 3, "text": "พยายามปฏิบัติในบางสถานการณ์"}, {"value": 4, "text": "ปฏิบัติได้อย่างสม่ำเสมอ"}, {"value": 5, "text": "เป็นแบบอย่างและสอนคนอื่นได้"}]}, {"id": "cc2", "question": "CC2: ความเก่งในการปรับตัวและสร้างนวัตกรรม", "options": [{"value": 1, "text": "ยึดติดกับวิธีเดิม"}, {"value": 2, "text": "ยอมรับการเปลี่ยนแปลงแต่ไม่ริเริ่ม"}, {"value": 3, "text": "ปรับตัวและคิดค้นวิธีใหม่ในบางเรื่อง"}, {"value": 4, "text": "สร้างนวัตกรรมและปรับปรุงอย่างต่อเนื่อง"}, {"value": 5, "text": "เป็นผู้นำการเปลี่ยนแปลงและสร้างวัฒนธรรมนวัตกรรม"}]}, {"id": "cc3", "question": "CC3: ความเก่งในการสร้างคุณค่าบนฐานความไว้วางใจ", "options": [{"value": 1, "text": "ยังไม่สร้างความไว้วางใจ"}, {"value": 2, "text": "พยายามแต่ยังไม่สม่ำเสมอ"}, {"value": 3, "text": "สร้างความไว้วางใจในระดับหนึ่ง"}, {"value": 4, "text": "สร้างคุณค่าและได้รับความไว้วางใจ"}, {"value": 5, "text": "เป็นที่ยอมรับและสร้างคุณค่าเกินคาดหวัง"}]}, {"id": "cc4", "question": "CC4: ความเก่งในการทำงานทีมด้วยฉันทมติ", "options": [{"value": 1, "text": "ทำงานคนเดียวเป็นหลัก"}, {"value": 2, "text": "ทำงานตามทีมแต่ไม่มีส่วนร่วม"}, {"value": 3, "text": "ร่วมมือและหาฉันทมติในบางเรื่อง"}, {"value": 4, "text": "สร้างฉันทมติและทำงานเป็นทีมได้ดี"}, {"value": 5, "text": "เป็นผู้นำทีมและสร้างฉันทมติในทุกการตัดสินใจ"}]}, {"id": "cc5", "question": "CC5: ความเก่งในวิชาชีพและวินัยองค์กร", "options": [{"value": 1, "text": "ยังไม่แสดงความเป็นวิชาชีพ"}, {"value": 2, "text": "พยายามแต่ยังขาดวินัย"}, {"value": 3, "text": "แสดงวิชาชีพและมีวินัยในระดับหนึ่ง"}, {"value": 4, "text": "เป็นมืออาชีพและมีวินัยสูง"}, {"value": 5, "text": "เป็นแบบอย่างและสร้างวัฒนธรรมวิชาชีพ"}]}, {"id": "cc6", "question": "CC6: ความเก่งในการใช้เทคโนโลยี", "options": [{"value": 1, "text": "ไม่ใช้เทคโนโลยี"}, {"value": 2, "text": "ใช้พื้นฐานเท่านั้น"}, {"value": 3, "text": "ใช้เทคโนโลยีในการทำงานได้"}, {"value": 4, "text": "ใช้เทคโนโลยีเพิ่มประสิทธิภาพ"}, {"value": 5, "text": "เป็นผู้นำและสอนคนอื่นใช้เทคโนโลยี"}]}, {"id": "cc7", "question": "CC7: ความเก่งในการสร้างบรรยากาศด้วยอารมณ์ขัน", "options": [{"value": 1, "text": "ไม่ใช้ humor ในการทำงาน"}, {"value": 2, "text": "ใช้บ้างแต่ไม่สม่ำเสมอ"}, {"value": 3, "text": "สร้างบรรยากาศที่ดีในบางโอกาส"}, {"value": 4, "text": "ใช้ humor สร้างบรรยากาศทีมอย่างสม่ำเสมอ"}, {"value": 5, "text": "เป็นผู้นำในการสร้างวัฒนธรรมความสุข"}]}], "3e3p": [{"id": "3e1", "question": "3E ตัวที่ 1: Energy (พลังงาน) - ท่านมีพลังงานและแรงจูงใจในการทำงานอย่างไร?", "options": [{"value": 1, "text": "หมดแรงและขาดแรงจูงใจ"}, {"value": 2, "text": "มีพลังงานแต่ไม่สม่ำเสมอ"}, {"value": 3, "text": "มีพลังงานและแรงจูงใจในระดับหนึ่ง"}, {"value": 4, "text": "มีพลังงานสูงและสร้างแรงบันดาลใจ"}, {"value": 5, "text": "เป็นแหล่งพลังงานและสร้างแรงจูงใจให้ทีม"}]}, {"id": "3e2", "question": "3E ตัวที่ 2: Enthusiasm (ความกระตือรือร้น) - ท่านมีความกระตือรือร้นต่องานอย่างไร?", "options": [{"value": 1, "text": "ไม่มีความกระตือรือร้น"}, {"value": 2, "text": "ทำตามที่บอกเท่านั้น"}, {"value": 3, "text": "กระตือรือร้นในงานที่สนใจ"}, {"value": 4, "text": "กระตือรือร้นและสร้างแรงบันดาลใจ"}, {"value": 5, "text": "เป็นผู้นำและสร้างวัฒนธรรมความกระตือรือร้น"}]}, {"id": "3e3", "question": "3E ตัวที่ 3: Execution (การลงมือทำ) - ท่านสามารถแปลงแผนไปสู่การปฏิบัติได้อย่างไร?", "options": [{"value": 1, "text": "ไม่ลงมือทำ"}, {"value": 2, "text": "ลงมือทำแต่ไม่สำเร็จ"}, {"value": 3, "text": "ลงมือทำและสำเร็จในบางเรื่อง"}, {"value": 4, "text": "ลงมือทำและสำเร็จอย่างสม่ำเสมอ"}, {"value": 5, "text": "ลงมือทำและสร้างผลลัพธ์ที่ยอดเยี่ยม"}]}, {"id": "3p1", "question": "3P ตัวที่ 1: Purpose (เป้าหมาย) - ท่านมีเป้าหมายและวิสัยทัศน์อย่างไร?", "options": [{"value": 1, "text": "ไม่มีเป้าหมาย"}, {"value": 2, "text": "มีเป้าหมายแต่ไม่ชัดเจน"}, {"value": 3, "text": "มีเป้าหมายและวางแผน"}, {"value": 4, "text": "มีเป้าหมายชัดเจนและมุ่งมั่น"}, {"value": 5, "text": "มีวิสัยทัศน์และสร้างแรงบันดาลใจให้ทีม"}]}, {"id": "3p2", "question": "3P ตัวที่ 2: Passion (ความหลงใหล) - ท่านมีความหลงใหลในงานอย่างไร?", "options": [{"value": 1, "text": "ไม่มีความหลงใหล"}, {"value": 2, "text": "ทำเพราะจำเป็น"}, {"value": 3, "text": "หลงใหลในงานบางด้าน"}, {"value": 4, "text": "หลงใหลและสร้างคุณค่า"}, {"value": 5, "text": "หลงใหลและส่งต่อความหลงใหลให้ทีม"}]}, {"id": "3p3", "question": "3P ตัวที่ 3: Perseverance (ความพากเพียร) - ท่านมีความพากเพียรต่ออุปสรรคอย่างไร?", "options": [{"value": 1, "text": "ยอมแพ้ง่าย"}, {"value": 2, "text": "พยายามแต่ล้มเลิกเร็ว"}, {"value": 3, "text": "พากเพียรในระดับหนึ่ง"}, {"value": 4, "text": "พากเพียรและหาทางแก้"}, {"value": 5, "text": "ไม่ยอมแพ้และสร้างความสำเร็จ"}]}]};
 
 // สร้างแบบทดสอบ
 function renderQuestions(category, containerId) {
     var container = document.getElementById(containerId);
     var html = questions[category].map(function(q, index) {
         return '<div class="question">' +
-               '<p>' + (index + 1) + '. ' + q.text + '</p>' +
+               '<p>' + (index + 1) + '. ' + q.question + '</p>' +
                '<div class="options">' +
-               options.map(function(opt) {
+               q.options.map(function(opt) {
                    return '<div class="option">' +
-                          '<input type="radio" name="' + q.id + '" value="' + opt.value + '" id="' + q.id + '_' + opt.value + '">' +
+                          '<input type="radio" name="' + q.id + '" value="' + opt.value + '" id="' + q.id + '_' + opt.value + '" onchange="updateProgress()">' +
                           '<label for="' + q.id + '_' + opt.value + '">' + opt.value + ' - ' + opt.text + '</label>' +
                           '</div>';
                }).join('') +
@@ -129,38 +113,58 @@ renderQuestions('skill', 'skillQuestions');
 renderQuestions('cc', 'ccQuestions');
 renderQuestions('3e3p', '3e3pQuestions');
 
+function updateProgress() {
+    var answered = 0;
+    var total = 23;
+    
+    Object.keys(questions).forEach(function(category) {
+        questions[category].forEach(function(q) {
+            var selected = document.querySelector('input[name="' + q.id + '"]:checked');
+            if (selected) answered++;
+        });
+    });
+    
+    var percentage = (answered / total) * 100;
+    document.getElementById('progressBar').style.width = percentage + '%';
+    document.getElementById('answeredCount').textContent = answered;
+}
+
 function submitAssessment() {
     // รวบรวมคะแนน
     var scores = {};
     var allAnswered = true;
+    var totalScore = 0;
+    var totalMax = 0;
     
     Object.keys(questions).forEach(function(category) {
+        scores[category] = {};
         questions[category].forEach(function(q) {
             var selected = document.querySelector('input[name="' + q.id + '"]:checked');
             if (!selected) {
                 allAnswered = false;
             } else {
-                scores[q.id] = parseInt(selected.value);
+                var score = parseInt(selected.value);
+                scores[category][q.id] = score;
+                totalScore += score;
+                totalMax += 5;
             }
         });
     });
     
     if (!allAnswered) {
-        alert('กรุณาตอบทุกข้อ');
+        alert('กรุณาตอบทุกข้อ (23 ข้อ)');
         return;
     }
     
     // คำนวณคะแนนรวม
-    var totalScore = Object.values(scores).reduce(function(sum, val) { return sum + val; }, 0);
-    var maxScore = Object.keys(scores).length * 5;
-    var percentage = ((totalScore / maxScore) * 100).toFixed(1);
+    var percentage = ((totalScore / totalMax) * 100).toFixed(1);
     
     // บันทึกผล
     var assessment = {
         applicantId: applicant.id,
         scores: scores,
         totalScore: totalScore,
-        maxScore: maxScore,
+        maxScore: totalMax,
         percentage: percentage,
         submittedAt: new Date().toISOString()
     };
@@ -173,6 +177,7 @@ function submitAssessment() {
     // อัปเดตสถานะผู้สมัคร
     applicant.status = 'assessed';
     applicant.assessmentDate = new Date().toISOString();
+    applicant.assessmentScore = percentage;
     
     // เก็บข้อมูลผู้สมัครที่อัปเดต
     var applicantsData = JSON.parse(localStorage.getItem('applicantsData') || '[]');
@@ -183,6 +188,29 @@ function submitAssessment() {
         applicantsData.push(applicant);
     }
     localStorage.setItem('applicantsData', JSON.stringify(applicantsData));
+    
+    // แสดงผลคะแนน
+    var summaryHtml = '<h3>📊 ผลคะแนน</h3>';
+    summaryHtml += '<div class="score-item"><span>คะแนนรวม:</span><span>' + totalScore + ' / ' + totalMax + ' (' + percentage + '%)</span></div>';
+    
+    Object.keys(questions).forEach(function(category) {
+        var catScore = 0;
+        var catMax = 0;
+        questions[category].forEach(function(q) {
+            catScore += scores[category][q.id];
+            catMax += 5;
+        });
+        var catPercentage = ((catScore / catMax) * 100).toFixed(1);
+        var catName = {
+            'attitude': '🎯 ทัศนคติ',
+            'skill': '💡 ทักษะ',
+            'cc': '🏢 ทุนองค์กร',
+            '3e3p': '📊 3E3P'
+        }[category];
+        summaryHtml += '<div class="score-item"><span>' + catName + ':</span><span>' + catScore + ' / ' + catMax + ' (' + catPercentage + '%)</span></div>';
+    });
+    
+    document.getElementById('scoreSummary').innerHTML = summaryHtml;
     
     // แสดงข้อความสำเร็จ
     document.getElementById('assessmentContent').style.display = 'none';
