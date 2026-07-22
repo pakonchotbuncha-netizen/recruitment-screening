@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แบบทดสอบทุนองค์กร CC - 7 ข้อ</title>
+<style>
+body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); min-height: 100vh; }
+.container { max-width: 800px; margin: 0 auto; }
+.card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 20px; }
+h1 { color: #333; margin-bottom: 10px; }
+.subtitle { color: #666; margin-bottom: 20px; }
+.timer { background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: 600; color: #e65100; }
+.timer.warning { background: #ffebee; color: #c62828; animation: pulse 1s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+.progress { background: #e0e0e0; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, #f093fb, #f5576c); transition: width 0.3s; }
+.question { margin-bottom: 25px; padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f5576c; }
+.question p { font-weight: 600; margin-bottom: 15px; color: #333; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { display: flex; align-items: center; padding: 12px; background: white; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+.option:hover { border-color: #f5576c; background: #fce4ec; }
+.option input[type="radio"] { margin-right: 12px; width: 20px; height: 20px; }
+.option label { cursor: pointer; flex: 1; font-size: 15px; }
+.option input[type="radio"]:checked + label { font-weight: 600; color: #f5576c; }
+.option.selected { border-color: #f5576c; background: #fce4ec; }
+.btn { padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; }
+.btn-submit { background: #4caf50; color: white; width: 100%; margin-top: 20px; }
+.btn-submit:hover { background: #388e3c; }
+.btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+.success { background: #c8e6c9; padding: 30px; border-radius: 12px; text-align: center; }
+.success h2 { color: #2e7d32; margin: 0 0 15px 0; }
+.score-summary { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: left; }
+.score-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+.score-item:last-child { border-bottom: none; font-weight: 600; font-size: 18px; }
+.error { background: #ffebee; padding: 20px; border-radius: 8px; text-align: center; color: #c62828; }
+</style>
+</head>
+<body>
+<div class="container">
+<div id="content">
+<div class="card">
+<h1>🏢 แบบทดสอบทุนองค์กร (CC)</h1>
+<p class="subtitle">จำนวน 7 ข้อ | เวลา 30 นาที</p>
+
+<div class="timer" id="timer">⏰ เวลาเหลือ: 30:00</div>
+
+<div class="progress">
+<div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+</div>
+<p style="text-align: center; color: #666; margin-bottom: 20px;">ตอบแล้ว: <span id="answeredCount">0</span> / 7 ข้อ</p>
+
+<div id="questions"></div>
+
+<button class="btn btn-submit" id="submitBtn" onclick="submitAssessment()" disabled>✅ ส่งคะแนน</button>
+</div>
+</div>
+
+<div id="successMessage" class="success" style="display:none;">
+<h2>✅ ส่งคะแนนสำเร็จ!</h2>
+<p>ขอบคุณที่ทำแบบทดสอบ</p>
+<div class="score-summary" id="scoreSummary"></div>
+</div>
+
+<div id="errorMessage" class="error" style="display:none;">
+<h2>❌ เกิดข้อผิดพลาด</h2>
+<p id="errorText"></p>
+</div>
+</div>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const applicantToken = urlParams.get('token');
+
+if (!applicantToken) {
+  document.getElementById('content').style.display = 'none';
+  document.getElementById('errorMessage').style.display = 'block';
+  document.getElementById('errorText').textContent = 'ไม่พบข้อมูลผู้สมัคร กรุณาคลิกลิงก์จากอีเมล';
+}
+
+const applicant = JSON.parse(localStorage.getItem('applicant_' + applicantToken) || 'null');
+
+if (!applicant && applicantToken) {
+  const tempApplicant = { id: applicantToken, fullName: 'ผู้สมัคร', testType: 'cc' };
+  localStorage.setItem('applicant_' + applicantToken, JSON.stringify(tempApplicant));
+}
+
+const questions = [
+  {
+    id: 'cc1',
+    question: 'CC1: ความเก่งในการนำผู้รับใช้ (Servant Leadership)',
+    options: [
+      { value: 1, text: 'ยังไม่เข้าใจแนวคิด' },
+      { value: 2, text: 'เข้าใจแต่ยังปฏิบัติไม่ได้' },
+      { value: 3, text: 'พยายามปฏิบัติในบางสถานการณ์' },
+      { value: 4, text: 'ปฏิบัติได้อย่างสม่ำเสมอ' },
+      { value: 5, text: 'เป็นแบบอย่างและสอนคนอื่นได้' }
+    ]
+  },
+  {
+    id: 'cc2',
+    question: 'CC2: ความเก่งในการปรับตัวและสร้างนวัตกรรม',
+    options: [
+      { value: 1, text: 'ยึดติดกับวิธีเดิม' },
+      { value: 2, text: 'ยอมรับการเปลี่ยนแปลงแต่ไม่ริเริ่ม' },
+      { value: 3, text: 'ปรับตัวและคิดค้นวิธีใหม่ในบางเรื่อง' },
+      { value: 4, text: 'สร้างนวัตกรรมและปรับปรุงอย่างต่อเนื่อง' },
+      { value: 5, text: 'เป็นผู้นำการเปลี่ยนแปลงและสร้างวัฒนธรรมนวัตกรรม' }
+    ]
+  },
+  {
+    id: 'cc3',
+    question: 'CC3: ความเก่งในการสร้างคุณค่าบนฐานความไว้วางใจ',
+    options: [
+      { value: 1, text: 'ยังไม่สร้างความไว้วางใจ' },
+      { value: 2, text: 'พยายามแต่ยังไม่สม่ำเสมอ' },
+      { value: 3, text: 'สร้างความไว้วางใจในระดับหนึ่ง' },
+      { value: 4, text: 'สร้างคุณค่าและได้รับความไว้วางใจ' },
+      { value: 5, text: 'เป็นที่ยอมรับและสร้างคุณค่าเกินคาดหวัง' }
+    ]
+  },
+  {
+    id: 'cc4',
+    question: 'CC4: ความเก่งในการทำงานทีมด้วยฉันทมติ',
+    options: [
+      { value: 1, text: 'ทำงานคนเดียวเป็นหลัก' },
+      { value: 2, text: 'ทำงานตามทีมแต่ไม่มีส่วนร่วม' },
+      { value: 3, text: 'ร่วมมือและหาฉันทมติในบางเรื่อง' },
+      { value: 4, text: 'สร้างฉันทมติและทำงานเป็นทีมได้ดี' },
+      { value: 5, text: 'เป็นผู้นำทีมและสร้างฉันทมติในทุกการตัดสินใจ' }
+    ]
+  },
+  {
+    id: 'cc5',
+    question: 'CC5: ความเก่งในวิชาชีพและวินัยองค์กร',
+    options: [
+      { value: 1, text: 'ยังไม่แสดงความเป็นวิชาชีพ' },
+      { value: 2, text: 'พยายามแต่ยังขาดวินัย' },
+      { value: 3, text: 'แสดงวิชาชีพและมีวินัยในระดับหนึ่ง' },
+      { value: 4, text: 'เป็นมืออาชีพและมีวินัยสูง' },
+      { value: 5, text: 'เป็นแบบอย่างและสร้างวัฒนธรรมวิชาชีพ' }
+    ]
+  },
+  {
+    id: 'cc6',
+    question: 'CC6: ความเก่งในการใช้เทคโนโลยี',
+    options: [
+      { value: 1, text: 'ไม่ใช้เทคโนโลยี' },
+      { value: 2, text: 'ใช้พื้นฐานเท่านั้น' },
+      { value: 3, text: 'ใช้เทคโนโลยีในการทำงานได้' },
+      { value: 4, text: 'ใช้เทคโนโลยีเพิ่มประสิทธิภาพ' },
+      { value: 5, text: 'เป็นผู้นำและสอนคนอื่นใช้เทคโนโลยี' }
+    ]
+  },
+  {
+    id: 'cc7',
+    question: 'CC7: ความเก่งในการสร้างบรรยากาศด้วยอารมณ์ขัน',
+    options: [
+      { value: 1, text: 'ไม่ใช้ humor ในการทำงาน' },
+      { value: 2, text: 'ใช้บ้างแต่ไม่สม่ำเสมอ' },
+      { value: 3, text: 'สร้างบรรยากาศที่ดีในบางโอกาส' },
+      { value: 4, text: 'ใช้ humor สร้างบรรยากาศทีมอย่างสม่ำเสมอ' },
+      { value: 5, text: 'เป็นผู้นำในการสร้างวัฒนธรรมความสุข' }
+    ]
+  }
+];
+
+function renderQuestions() {
+  const container = document.getElementById('questions');
+  container.innerHTML = questions.map((q, index) => `
+    <div class="question">
+      <p>${index + 1}. ${q.question}</p>
+      <div class="options">
+        ${q.options.map(opt => `
+          <div class="option" onclick="selectOption('${q.id}', ${opt.value})">
+            <input type="radio" name="${q.id}" value="${opt.value}" id="${q.id}_${opt.value}">
+            <label for="${q.id}_${opt.value}">${opt.value} - ${opt.text}</label>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectOption(questionId, value) {
+  document.querySelectorAll(`input[name="${questionId}"]`).forEach(input => {
+    input.parentElement.classList.remove('selected');
+  });
+  const selected = document.querySelector(`input[name="${questionId}"][value="${value}"]`);
+  if (selected) {
+    selected.checked = true;
+    selected.parentElement.classList.add('selected');
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  let answered = 0;
+  questions.forEach(q => {
+    if (document.querySelector(`input[name="${q.id}"]:checked`)) answered++;
+  });
+  const percentage = (answered / questions.length) * 100;
+  document.getElementById('progressBar').style.width = percentage + '%';
+  document.getElementById('answeredCount').textContent = answered;
+  document.getElementById('submitBtn').disabled = (answered < questions.length);
+}
+
+let timeLeft = 30 * 60;
+function startTimer() {
+  const timerInterval = setInterval(() => {
+    timeLeft--;
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    const timerElement = document.getElementById('timer');
+    timerElement.textContent = `⏰ เวลาเหลือ: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    if (timeLeft <= 300) timerElement.classList.add('warning');
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      alert('⏰ หมดเวลา! ระบบจะส่งคำตอบอัตโนมัติ');
+      submitAssessment(true);
+    }
+  }, 1000);
+}
+
+function submitAssessment(autoSubmit = false) {
+  const scores = {};
+  let allAnswered = true;
+  let totalScore = 0;
+  
+  questions.forEach(q => {
+    const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+    if (!selected) {
+      allAnswered = false;
+    } else {
+      const score = parseInt(selected.value);
+      scores[q.id] = score;
+      totalScore += score;
+    }
+  });
+  
+  if (!allAnswered && !autoSubmit) {
+    alert('กรุณาตอบทุกข้อ');
+    return;
+  }
+  
+  const maxScore = questions.length * 5;
+  const percentage = ((totalScore / maxScore) * 100).toFixed(1);
+  
+  const assessment = {
+    applicantId: applicantToken,
+    testType: 'cc',
+    scores: scores,
+    totalScore: totalScore,
+    maxScore: maxScore,
+    percentage: percentage,
+    submittedAt: new Date().toISOString()
+  };
+  
+  const assessments = JSON.parse(localStorage.getItem('assessments') || '[]');
+  assessments.push(assessment);
+  localStorage.setItem('assessments', JSON.stringify(assessments));
+  
+  const summaryHtml = `
+    <h3>📊 ผลคะแนนทุนองค์กร (CC)</h3>
+    <div class="score-item"><span>คะแนนรวม:</span><span>${totalScore} / ${maxScore}</span></div>
+    <div class="score-item"><span>เปอร์เซ็นต์:</span><span>${percentage}%</span></div>
+    <div class="score-item"><span>ระดับ:</span><span>${getLevel(percentage)}</span></div>
+  `;
+  
+  document.getElementById('scoreSummary').innerHTML = summaryHtml;
+  document.getElementById('content').style.display = 'none';
+  document.getElementById('successMessage').style.display = 'block';
+}
+
+function getLevel(percentage) {
+  if (percentage >= 80) return '⭐⭐⭐⭐⭐ ดีมาก';
+  if (percentage >= 70) return '⭐⭐⭐⭐ ดี';
+  if (percentage >= 60) return '⭐⭐⭐ ปานกลาง';
+  if (percentage >= 50) return '⭐⭐ พอใช้';
+  return '⭐ ต้องปรับปรุง';
+}
+
+renderQuestions();
+startTimer();
+</script>
+</body>
+</html>

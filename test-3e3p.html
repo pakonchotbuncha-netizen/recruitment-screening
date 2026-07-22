@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แบบทดสอบ 3E3P - 6 ข้อ</title>
+<style>
+body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); min-height: 100vh; }
+.container { max-width: 800px; margin: 0 auto; }
+.card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 20px; }
+h1 { color: #333; margin-bottom: 10px; }
+.subtitle { color: #666; margin-bottom: 20px; }
+.timer { background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; font-size: 18px; font-weight: 600; color: #e65100; }
+.timer.warning { background: #ffebee; color: #c62828; animation: pulse 1s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+.progress { background: #e0e0e0; height: 10px; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, #4facfe, #00f2fe); transition: width 0.3s; }
+.question { margin-bottom: 25px; padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #00f2fe; }
+.question p { font-weight: 600; margin-bottom: 15px; color: #333; }
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option { display: flex; align-items: center; padding: 12px; background: white; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+.option:hover { border-color: #00f2fe; background: #e1f5fe; }
+.option input[type="radio"] { margin-right: 12px; width: 20px; height: 20px; }
+.option label { cursor: pointer; flex: 1; font-size: 15px; }
+.option input[type="radio"]:checked + label { font-weight: 600; color: #0288d1; }
+.option.selected { border-color: #00f2fe; background: #e1f5fe; }
+.btn { padding: 15px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; }
+.btn-submit { background: #4caf50; color: white; width: 100%; margin-top: 20px; }
+.btn-submit:hover { background: #388e3c; }
+.btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+.success { background: #c8e6c9; padding: 30px; border-radius: 12px; text-align: center; }
+.success h2 { color: #2e7d32; margin: 0 0 15px 0; }
+.score-summary { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: left; }
+.score-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+.score-item:last-child { border-bottom: none; font-weight: 600; font-size: 18px; }
+.error { background: #ffebee; padding: 20px; border-radius: 8px; text-align: center; color: #c62828; }
+</style>
+</head>
+<body>
+<div class="container">
+<div id="content">
+<div class="card">
+<h1>📊 แบบทดสอบ 3E3P</h1>
+<p class="subtitle">จำนวน 6 ข้อ | เวลา 30 นาที</p>
+
+<div class="timer" id="timer">⏰ เวลาเหลือ: 30:00</div>
+
+<div class="progress">
+<div class="progress-bar" id="progressBar" style="width: 0%;"></div>
+</div>
+<p style="text-align: center; color: #666; margin-bottom: 20px;">ตอบแล้ว: <span id="answeredCount">0</span> / 6 ข้อ</p>
+
+<div id="questions"></div>
+
+<button class="btn btn-submit" id="submitBtn" onclick="submitAssessment()" disabled>✅ ส่งคะแนน</button>
+</div>
+</div>
+
+<div id="successMessage" class="success" style="display:none;">
+<h2>✅ ส่งคะแนนสำเร็จ!</h2>
+<p>ขอบคุณที่ทำแบบทดสอบ</p>
+<div class="score-summary" id="scoreSummary"></div>
+</div>
+
+<div id="errorMessage" class="error" style="display:none;">
+<h2>❌ เกิดข้อผิดพลาด</h2>
+<p id="errorText"></p>
+</div>
+</div>
+
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const applicantToken = urlParams.get('token');
+
+if (!applicantToken) {
+  document.getElementById('content').style.display = 'none';
+  document.getElementById('errorMessage').style.display = 'block';
+  document.getElementById('errorText').textContent = 'ไม่พบข้อมูลผู้สมัคร กรุณาคลิกลิงก์จากอีเมล';
+}
+
+const applicant = JSON.parse(localStorage.getItem('applicant_' + applicantToken) || 'null');
+
+if (!applicant && applicantToken) {
+  const tempApplicant = { id: applicantToken, fullName: 'ผู้สมัคร', testType: '3e3p' };
+  localStorage.setItem('applicant_' + applicantToken, JSON.stringify(tempApplicant));
+}
+
+const questions = [
+  {
+    id: '3e1',
+    question: '3E ตัวที่ 1: Energy (พลังงาน) - ท่านมีพลังงานและแรงจูงใจในการทำงานอย่างไร?',
+    options: [
+      { value: 1, text: 'หมดแรงและขาดแรงจูงใจ' },
+      { value: 2, text: 'มีพลังงานแต่ไม่สม่ำเสมอ' },
+      { value: 3, text: 'มีพลังงานและแรงจูงใจในระดับหนึ่ง' },
+      { value: 4, text: 'มีพลังงานสูงและสร้างแรงบันดาลใจ' },
+      { value: 5, text: 'เป็นแหล่งพลังงานและสร้างแรงจูงใจให้ทีม' }
+    ]
+  },
+  {
+    id: '3e2',
+    question: '3E ตัวที่ 2: Enthusiasm (ความกระตือรือร้น) - ท่านมีความกระตือรือร้นต่องานอย่างไร?',
+    options: [
+      { value: 1, text: 'ไม่มีความกระตือรือร้น' },
+      { value: 2, text: 'ทำตามที่บอกเท่านั้น' },
+      { value: 3, text: 'กระตือรือร้นในงานที่สนใจ' },
+      { value: 4, text: 'กระตือรือร้นและสร้างแรงบันดาลใจ' },
+      { value: 5, text: 'เป็นผู้นำและสร้างวัฒนธรรมความกระตือรือร้น' }
+    ]
+  },
+  {
+    id: '3e3',
+    question: '3E ตัวที่ 3: Execution (การลงมือทำ) - ท่านสามารถแปลงแผนไปสู่การปฏิบัติได้อย่างไร?',
+    options: [
+      { value: 1, text: 'ไม่ลงมือทำ' },
+      { value: 2, text: 'ลงมือทำแต่ไม่สำเร็จ' },
+      { value: 3, text: 'ลงมือทำและสำเร็จในบางเรื่อง' },
+      { value: 4, text: 'ลงมือทำและสำเร็จอย่างสม่ำเสมอ' },
+      { value: 5, text: 'ลงมือทำและสร้างผลลัพธ์ที่ยอดเยี่ยม' }
+    ]
+  },
+  {
+    id: '3p1',
+    question: '3P ตัวที่ 1: Purpose (เป้าหมาย) - ท่านมีเป้าหมายและวิสัยทัศน์อย่างไร?',
+    options: [
+      { value: 1, text: 'ไม่มีเป้าหมาย' },
+      { value: 2, text: 'มีเป้าหมายแต่ไม่ชัดเจน' },
+      { value: 3, text: 'มีเป้าหมายและวางแผน' },
+      { value: 4, text: 'มีเป้าหมายชัดเจนและมุ่งมั่น' },
+      { value: 5, text: 'มีวิสัยทัศน์และสร้างแรงบันดาลใจให้ทีม' }
+    ]
+  },
+  {
+    id: '3p2',
+    question: '3P ตัวที่ 2: Passion (ความหลงใหล) - ท่านมีความหลงใหลในงานอย่างไร?',
+    options: [
+      { value: 1, text: 'ไม่มีความหลงใหล' },
+      { value: 2, text: 'ทำเพราะจำเป็น' },
+      { value: 3, text: 'หลงใหลในงานบางด้าน' },
+      { value: 4, text: 'หลงใหลและสร้างคุณค่า' },
+      { value: 5, text: 'หลงใหลและส่งต่อความหลงใหลให้ทีม' }
+    ]
+  },
+  {
+    id: '3p3',
+    question: '3P ตัวที่ 3: Perseverance (ความพากเพียร) - ท่านมีความพากเพียรต่ออุปสรรคอย่างไร?',
+    options: [
+      { value: 1, text: 'ยอมแพ้ง่าย' },
+      { value: 2, text: 'พยายามแต่ล้มเลิกเร็ว' },
+      { value: 3, text: 'พากเพียรในระดับหนึ่ง' },
+      { value: 4, text: 'พากเพียรและหาทางแก้' },
+      { value: 5, text: 'ไม่ยอมแพ้และสร้างความสำเร็จ' }
+    ]
+  }
+];
+
+function renderQuestions() {
+  const container = document.getElementById('questions');
+  container.innerHTML = questions.map((q, index) => `
+    <div class="question">
+      <p>${index + 1}. ${q.question}</p>
+      <div class="options">
+        ${q.options.map(opt => `
+          <div class="option" onclick="selectOption('${q.id}', ${opt.value})">
+            <input type="radio" name="${q.id}" value="${opt.value}" id="${q.id}_${opt.value}">
+            <label for="${q.id}_${opt.value}">${opt.value} - ${opt.text}</label>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectOption(questionId, value) {
+  document.querySelectorAll(`input[name="${questionId}"]`).forEach(input => {
+    input.parentElement.classList.remove('selected');
+  });
+  const selected = document.querySelector(`input[name="${questionId}"][value="${value}"]`);
+  if (selected) {
+    selected.checked = true;
+    selected.parentElement.classList.add('selected');
+  }
+  updateProgress();
+}
+
+function updateProgress() {
+  let answered = 0;
+  questions.forEach(q => {
+    if (document.querySelector(`input[name="${q.id}"]:checked`)) answered++;
+  });
+  const percentage = (answered / questions.length) * 100;
+  document.getElementById('progressBar').style.width = percentage + '%';
+  document.getElementById('answeredCount').textContent = answered;
+  document.getElementById('submitBtn').disabled = (answered < questions.length);
+}
+
+let timeLeft = 30 * 60;
+function startTimer() {
+  const timerInterval = setInterval(() => {
+    timeLeft--;
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    const timerElement = document.getElementById('timer');
+    timerElement.textContent = `⏰ เวลาเหลือ: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    if (timeLeft <= 300) timerElement.classList.add('warning');
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      alert('⏰ หมดเวลา! ระบบจะส่งคำตอบอัตโนมัติ');
+      submitAssessment(true);
+    }
+  }, 1000);
+}
+
+function submitAssessment(autoSubmit = false) {
+  const scores = {};
+  let allAnswered = true;
+  let totalScore = 0;
+  
+  questions.forEach(q => {
+    const selected = document.querySelector(`input[name="${q.id}"]:checked`);
+    if (!selected) {
+      allAnswered = false;
+    } else {
+      const score = parseInt(selected.value);
+      scores[q.id] = score;
+      totalScore += score;
+    }
+  });
+  
+  if (!allAnswered && !autoSubmit) {
+    alert('กรุณาตอบทุกข้อ');
+    return;
+  }
+  
+  const maxScore = questions.length * 5;
+  const percentage = ((totalScore / maxScore) * 100).toFixed(1);
+  
+  const assessment = {
+    applicantId: applicantToken,
+    testType: '3e3p',
+    scores: scores,
+    totalScore: totalScore,
+    maxScore: maxScore,
+    percentage: percentage,
+    submittedAt: new Date().toISOString()
+  };
+  
+  const assessments = JSON.parse(localStorage.getItem('assessments') || '[]');
+  assessments.push(assessment);
+  localStorage.setItem('assessments', JSON.stringify(assessments));
+  
+  const summaryHtml = `
+    <h3>📊 ผลคะแนน 3E3P</h3>
+    <div class="score-item"><span>คะแนนรวม:</span><span>${totalScore} / ${maxScore}</span></div>
+    <div class="score-item"><span>เปอร์เซ็นต์:</span><span>${percentage}%</span></div>
+    <div class="score-item"><span>ระดับ:</span><span>${getLevel(percentage)}</span></div>
+  `;
+  
+  document.getElementById('scoreSummary').innerHTML = summaryHtml;
+  document.getElementById('content').style.display = 'none';
+  document.getElementById('successMessage').style.display = 'block';
+}
+
+function getLevel(percentage) {
+  if (percentage >= 80) return '⭐⭐⭐⭐⭐ ดีมาก';
+  if (percentage >= 70) return '⭐⭐⭐⭐ ดี';
+  if (percentage >= 60) return '⭐⭐⭐ ปานกลาง';
+  if (percentage >= 50) return '⭐⭐ พอใช้';
+  return '⭐ ต้องปรับปรุง';
+}
+
+renderQuestions();
+startTimer();
+</script>
+</body>
+</html>
