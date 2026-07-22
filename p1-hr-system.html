@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1 - ระบบกระบวนการแสวงหา</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#333}
+.header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:20px 30px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.header h1{font-size:22px;margin-bottom:4px}
+.header .sub{opacity:.85;font-size:13px}
+.container{max-width:1400px;margin:0 auto;padding:20px}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:#fff;padding:10px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.tab{padding:12px 20px;border:2px solid #e0e0e0;border-radius:8px;background:#fff;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s;flex:1;text-align:center}
+.tab:hover{border-color:#1a237e}
+.tab.active{background:#1a237e;color:#fff;border-color:#1a237e}
+.tab .tab-icon{display:block;font-size:20px;margin-bottom:4px}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:#fff;padding:16px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);text-align:center}
+.stat-val{font-size:28px;font-weight:bold}
+.stat-lbl{color:#666;font-size:12px;margin-top:4px}
+
+/* Card */
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:20px;margin-bottom:20px}
+.card h2{color:#1a237e;margin-bottom:15px;font-size:18px}
+.card h3{color:#333;margin-bottom:10px;font-size:15px}
+
+/* Table */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f5f5f5;padding:10px 12px;text-align:left;font-weight:600;border-bottom:2px solid #ddd;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid #eee}
+tr:hover{background:#f9f9f9}
+
+/* Badge */
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.b-new{background:#e3f2fd;color:#1565c0}
+.b-sent{background:#fff3e0;color:#e65100}
+.b-done{background:#f3e5f5;color:#7b1fa2}
+.b-interview{background:#e8f5e9;color:#2e7d32}
+.b-hired{background:#c8e6c9;color:#2e7d32}
+.b-reject{background:#ffcdd2;color:#c62828}
+
+/* Buttons */
+.btn{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:all .2s;display:inline-flex;align-items:center;gap:5px}
+.btn-p{background:#1a237e;color:#fff}.btn-p:hover{background:#283593}
+.btn-s{background:#2e7d32;color:#fff}.btn-s:hover{background:#388e3c}
+.btn-w{background:#f57c00;color:#fff}.btn-w:hover{background:#e65100}
+.btn-i{background:#0288d1;color:#fff}.btn-i:hover{background:#01579b}
+.btn-d{background:#c62828;color:#fff}.btn-d:hover{background:#b71c1c}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-grp{display:flex;gap:5px;flex-wrap:wrap}
+
+/* Filters */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;align-items:end}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:11px;color:#666;font-weight:600}
+select,input[type=date],input[type=text]{padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px}
+
+/* Modal */
+.modal{display:none;position:fixed;z-index:1000;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,.5)}
+.modal-c{background:#fff;margin:3% auto;padding:25px;border-radius:12px;width:92%;max-width:800px;max-height:90vh;overflow-y:auto}
+.modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.modal-h h2{margin:0;font-size:18px}
+.close{font-size:28px;cursor:pointer;color:#999}.close:hover{color:#333}
+
+/* Message */
+.msg-box{background:#f5f5f5;padding:15px;border-radius:8px;font-family:monospace;font-size:13px;line-height:1.6;white-space:pre-wrap;margin:10px 0;max-height:300px;overflow-y:auto}
+.copy-ok{background:#c8e6c9;padding:10px;border-radius:8px;text-align:center;color:#2e7d32;font-weight:600;display:none;margin-top:10px}
+
+/* Info */
+.info{background:#e3f2fd;padding:12px;border-radius:8px;margin-bottom:15px;font-size:13px;color:#1565c0}
+.warn{background:#fff3e0;padding:12px;border-radius:8px;margin-bottom:15px;font-size:13px;color:#e65100}
+
+/* Score */
+.score-bar{background:#e0e0e0;border-radius:10px;height:8px;overflow:hidden;display:inline-block;width:80px;vertical-align:middle}
+.score-fill{height:100%;border-radius:10px}
+.sf-h{background:#2e7d32}.sf-m{background:#f57c00}.sf-l{background:#c62828}
+
+/* Tab Content */
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* Interview Form */
+.interview-form{border:1px solid #e0e0e0;border-radius:8px;padding:15px;margin-bottom:15px}
+.interview-form h4{color:#1a237e;margin-bottom:10px}
+.rating{display:flex;gap:5px;margin:5px 0}
+.rating-btn{width:36px;height:36px;border:2px solid #e0e0e0;border-radius:8px;background:#fff;cursor:pointer;font-weight:bold;font-size:14px;transition:all .2s}
+.rating-btn:hover{border-color:#1a237e}
+.rating-btn.selected{background:#1a237e;color:#fff;border-color:#1a237e}
+
+/* AI Analysis */
+.ai-box{background:linear-gradient(135deg,#e8eaf6,#c5cae9);padding:15px;border-radius:8px;margin:10px 0;border-left:4px solid #1a237e}
+.ai-box h4{color:#1a237e;margin-bottom:8px}
+
+/* Responsive */
+@media(max-width:768px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .tabs{flex-wrap:wrap}
+  .tab{flex:none;width:calc(50% - 4px)}
+  table{font-size:11px}
+  th,td{padding:6px 8px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎯 P1 - ระบบกระบวนการแสวงหา</h1>
+  <div class="sub">ระบบคัดกรองและสัมภาษณ์ตำแหน่งงาน | ข้อมูลจาก BCT PPP7 Sheet (Read-Only)</div>
+</div>
+
+<div class="container">
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('applicants')">
+      <span class="tab-icon">👥</span>ผู้สมัคร
+    </div>
+    <div class="tab" onclick="switchTab('test-interview')">
+      <span class="tab-icon">📝</span>ส่งแบบทดสอบทักษะและนัดสัมภาษณ์
+    </div>
+    <div class="tab" onclick="switchTab('interview')">
+      <span class="tab-icon">🎤</span>นัดสัมภาษณ์
+    </div>
+    <div class="tab" onclick="switchTab('onboard')">
+      <span class="tab-icon">🏢</span>นัดเริ่มงาน
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="s-total">0</div><div class="stat-lbl">ผู้สมัครทั้งหมด</div></div>
+    <div class="stat"><div class="stat-val" style="color:#1565c0" id="s-new">0</div><div class="stat-lbl">ผู้สมัครใหม่</div></div>
+    <div class="stat"><div class="stat-val" style="color:#7b1fa2" id="s-tested">0</div><div class="stat-lbl">ทำแบบทดสอบแล้ว</div></div>
+    <div class="stat"><div class="stat-val" style="color:#e65100" id="s-interview">0</div><div class="stat-lbl">กำลังสัมภาษณ์</div></div>
+    <div class="stat"><div class="stat-val" style="color:#2e7d32" id="s-hired">0</div><div class="stat-lbl">จ้างงาน</div></div>
+  </div>
+
+  <!-- ==================== TAB 1: ผู้สมัคร ==================== -->
+  <div class="tab-content active" id="tab-applicants">
+    <div class="card">
+      <h2>👥 ข้อมูลผู้สมัครทั้งหมด</h2>
+      <div class="info">
+        <strong>แหล่งข้อมูล:</strong> <a href="https://docs.google.com/spreadsheets/d/1p_KWMT8PfBHRVUUuvUQTO1JBdHoHQFhHtbKwWj_ev74/edit" target="_blank">BCT PPP7 Sheet</a> (Read-Only)<br>
+        <strong>หมายเหตุ:</strong> ระบบตัดใบสมัครซ้ำอัตโนมัติ | ส่งแบบทดสอบอัตโนมัติทาง LINE/FB ยกเว้นแบบทดสอบทักษะ (HR ส่งเอง)
+      </div>
+      
+      <!-- Filters -->
+      <div class="filters">
+        <div class="fg">
+          <label>สถานะ</label>
+          <select id="f-status" onchange="renderTab1()">
+            <option value="all">ทั้งหมด</option>
+            <option value="new">ใหม่ (ยังไม่ส่ง)</option>
+            <option value="sent-test">ส่งแบบทดสอบแล้ว</option>
+            <option value="test-done">ทำแบบทดสอบเสร็จ</option>
+            <option value="duplicate">ใบสมัครซ้ำ</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>ตั้งแต่</label>
+          <input type="date" id="f-from" onchange="renderTab1()">
+        </div>
+        <div class="fg">
+          <label>ถึง</label>
+          <input type="date" id="f-to" onchange="renderTab1()">
+        </div>
+        <div class="fg">
+          <label>ค้นหา</label>
+          <input type="text" id="f-search" placeholder="ชื่อ/ตำแหน่ง..." onkeyup="renderTab1()">
+        </div>
+        <div class="fg">
+          <label>&nbsp;</label>
+          <button class="btn btn-p" onclick="loadData()">🔄 โหลดข้อมูล</button>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" onchange="toggleAllTab1(this)"></th>
+              <th>#</th>
+              <th>ชื่อ-นามสกุล</th>
+              <th>ตำแหน่ง</th>
+              <th>วันที่สมัคร</th>
+              <th>LINE/FB</th>
+              <th>สถานะ</th>
+              <th>เครื่องมือ</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-applicants"></tbody>
+        </table>
+      </div>
+      
+      <div style="margin-top:15px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-s" onclick="sendAutoTest()">📤 ส่งแบบทดสอบอัตโนมัติ (ทัศนคติ/CC/3E3P)</button>
+        <button class="btn btn-w" onclick="showSkillTestMessage()">📝 สร้างข้อความแบบทดสอบทักษะ (HR ส่งเอง)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 2: ส่งแบบทดสอบทักษะและนัดสัมภาษณ์ ==================== -->
+  <div class="tab-content" id="tab-test-interview">
+    <div class="card">
+      <h2>📝 แบบทดสอบที่รับกลับจากผู้สมัคร</h2>
+      <div class="info">
+        แสดงรายชื่อผู้สมัครที่ทำแบบทดสอบเสร็จแล้ว (ทัศนคติ, CC, 3E3P) — รอทำแบบทดสอบทักษะ
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" onchange="toggleAllTab2(this)"></th>
+              <th>ชื่อ</th>
+              <th>ตำแหน่ง</th>
+              <th>ทัศนคติ</th>
+              <th>CC</th>
+              <th>3E3P</th>
+              <th>คะแนนรวม</th>
+              <th>ทักษะ</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-test-done"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:15px">
+        <button class="btn btn-w" onclick="sendSkillTest()">📝 ส่งแบบทดสอบทักษะ (เลือกผู้ที่ HR เลือก)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🤖 AI วิเคราะห์คุณสมบัติ</h2>
+      <div class="info">AI ประมวลผลแบบทดสอบทั้งหมด เปรียบเทียบกับความต้องการของตำแหน่ง</div>
+      <div id="ai-analysis"></div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 3: นัดสัมภาษณ์ ==================== -->
+  <div class="tab-content" id="tab-interview">
+    <div class="card">
+      <h2>✅ เลือกผู้สมัครเข้าสัมภาษณ์</h2>
+      <div class="info">เลือกผู้สมัครที่ผ่านเกณฑ์เข้าสัมภาษณ์ — AI จะเขียนข้อความนัดสัมภาษณ์ให้</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" onchange="toggleAllTab3(this)"></th>
+              <th>ชื่อ</th>
+              <th>ตำแหน่ง</th>
+              <th>คะแนนรวม</th>
+              <th>AI แนะนำ</th>
+              <th>เครื่องมือ</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-select-interview"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:15px">
+        <button class="btn btn-s" onclick="scheduleInterview()">📅 นัดสัมภาษณ์ (เลือก + สร้างข้อความ)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📅 รายการนัดสัมภาษณ์</h2>
+      <div class="info">
+        • 2 วันก่อนนัด → AI สร้างแบบสัมภาษณ์อัตโนมัติ (ประวัติ + ผลทดสอบ + วิเคราะห์)<br>
+        • วันสัมภาษณ์ → กรอก ID สมาชิกผู้สัมภาษณ์ → ให้คะแนน (5 คน)
+      </div>
+      <div id="interview-schedule"></div>
+    </div>
+
+    <div class="card">
+      <h2>🎤 แบบฟอร์มให้คะแนนสัมภาษณ์</h2>
+      <div class="info">กรอก ID สมาชิกผู้สัมภาษณ์ + ให้คะแนนแต่ละด้าน</div>
+      <div id="scoring-form"></div>
+    </div>
+
+    <div class="card">
+      <h2>📊 สรุปผลการสัมภาษณ์</h2>
+      <div class="info">ระบบรวมคะแนนจากผู้สัมภาษณ์ทั้งหมด + AI สรุปผล</div>
+      <div id="interview-summary"></div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 4: นัดเริ่มงาน ==================== -->
+  <div class="tab-content" id="tab-onboard">
+    <div class="card">
+      <h2>🏢 เลือกผู้ที่ผ่านการสัมภาษณ์ — นัดเริ่มงาน</h2>
+      <div class="info">เลือกผู้สมัครที่ผ่านการสัมภาษณ์ทั้งหมด → นัดวันเริ่มงาน</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" onchange="toggleAllTab4(this)"></th>
+              <th>ชื่อ</th>
+              <th>ตำแหน่ง</th>
+              <th>คะแนนสัมภาษณ์</th>
+              <th>AI สรุป</th>
+              <th>เครื่องมือ</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-onboard"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:15px">
+        <button class="btn btn-s" onclick="scheduleOnboard()">📅 นัดเริ่มงาน</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="modal">
+  <div class="modal-c">
+    <div class="modal-h">
+      <h2 id="modal-title">รายละเอียด</h2>
+      <span class="close" onclick="closeModal()">&times;</span>
+    </div>
+    <div id="modal-body"></div>
+    <div class="copy-ok" id="copy-ok">✅ คัดลอกแล้ว!</div>
+  </div>
+</div>
+
+<script>
+// ===== CONFIG =====
+const DATA_URL='https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d';
+const TEST_URL='https://pakonchotbuncha-netizen.github.io/recruitment-screening/test-form.html';
+
+// ===== STATE =====
+let applicants=[];
+let testResults=[];
+let interviewScores={};
+let selectedTab1=new Set();
+let selectedTab2=new Set();
+let selectedTab3=new Set();
+let selectedTab4=new Set();
+
+// ===== LOAD =====
+async function loadData(){
+  try{
+    const r=await fetch(DATA_URL);
+    const d=await r.json();
+    applicants=d.applicants||[];
+    testResults=d.testResults||[];
+    interviewScores=d.interviewScores||{};
+    
+    // Remove duplicates
+    const seen=new Set();
+    applicants=applicants.filter(a=>{
+      const k=a.personalID||(a.fullName+'_'+a.applyDate);
+      if(seen.has(k)){a.isDuplicate=true;return true;} // keep but mark
+      seen.add(k);return true;
+    });
+    
+    // Merge test results
+    applicants.forEach(a=>{
+      const t=testResults.find(x=>x.applicantId===a.id);
+      if(t){a.testStatus='done';a.scores=t.scores;a.testRef=t.refCode;}
+      else if(a.testSent){a.testStatus='sent';}
+      else{a.testStatus='new';}
+    });
+    
+    updateStats();
+    renderAll();
+  }catch(e){
+    console.error(e);
+    loadSample();
+    updateStats();
+    renderAll();
+  }
+}
+
+function loadSample(){
+  applicants=[
+    {id:'APP-001',fullName:'นายอรุณ เค้าทอง',position:'สมาชิกที่ปรึกษางานบริการ(ช่างยนต์)',education:'ปวส.',major:'เทคนิคเครื่องกล',grade:3.51,applyDate:'2026-07-05',line:'Jab1925',fb:'Arun khaotong',testStatus:'done',scores:{attitude:82,cc:75,e3p:70,overall:76}},
+    {id:'APP-002',fullName:'นายอนุวัฒน์ แก้วรอด',position:'สมาชิกช่างกรุ๊ปรถเล็ก',education:'ปวส.',major:'เครื่องกล',grade:3.36,applyDate:'2026-07-08',line:'903839407',testStatus:'done',scores:{attitude:70,cc:68,e3p:72,overall:70}},
+    {id:'APP-003',fullName:'นางสาวรัชดาภรณ์ ขอจัดกลาง',position:'สมาชิกประเมินราคาและบริการลูกค้า',education:'ปริญญาตรี',major:'คอมพิวเตอร์ธุรการ',grade:2.38,applyDate:'2026-07-10',line:'aommija',testStatus:'sent'},
+    {id:'APP-004',fullName:'นายชุติพงศ์ มิ่งมณี',position:'สมาชิกอะไหล่ TIS',education:'ปวส.',major:'คอมพิวเตอร์ธุรกิจ',grade:3.09,applyDate:'2026-07-12',line:'crvjamming',testStatus:'new'},
+    {id:'APP-005',fullName:'นางสาวจารุวรรณ พิมพิทักษ์',position:'สมาชิกบริการลูกค้าสินเชื่อ',education:'ปริญญาตรี',major:'ภาพยนตร์และสื่อดิจิทัล',grade:3.29,applyDate:'2026-07-15',line:'nutty0221',testStatus:'new'},
+    {id:'APP-006',fullName:'นายทรงยุทธ เมฆมี',position:'สมาชิกทีมสานสัมพันธ์',education:'ปวส.',major:'ช่างยนต์',grade:3.09,applyDate:'2026-07-18',line:'Arm980',testStatus:'done',scores:{attitude:88,cc:82,e3p:85,overall:85}},
+  ];
+}
+
+// ===== STATS =====
+function updateStats(){
+  document.getElementById('s-total').textContent=applicants.length;
+  document.getElementById('s-new').textContent=applicants.filter(a=>a.testStatus==='new').length;
+  document.getElementById('s-tested').textContent=applicants.filter(a=>a.testStatus==='done').length;
+  document.getElementById('s-interview').textContent=applicants.filter(a=>a.interviewScheduled).length;
+  document.getElementById('s-hired').textContent=applicants.filter(a=>a.hired).length;
+}
+
+// ===== TAB SWITCH =====
+function switchTab(name){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ===== RENDER ALL =====
+function renderAll(){renderTab1();renderTab2();renderTab3();renderTab4();}
+
+// ===== TAB 1: ผู้สมัคร =====
+function renderTab1(){
+  const sf=document.getElementById('f-status').value;
+  const from=document.getElementById('f-from').value;
+  const to=document.getElementById('f-to').value;
+  const q=document.getElementById('f-search').value.toLowerCase();
+  
+  let list=applicants.filter(a=>{
+    if(sf==='new'&&a.testStatus!=='new')return false;
+    if(sf==='sent-test'&&a.testStatus!=='sent')return false;
+    if(sf==='test-done'&&a.testStatus!=='done')return false;
+    if(sf==='duplicate'&&!a.isDuplicate)return false;
+    if(from&&a.applyDate<from)return false;
+    if(to&&a.applyDate>to)return false;
+    if(q&&!(`${a.fullName} ${a.position}`).toLowerCase().includes(q))return false;
+    return true;
+  });
+  
+  let html='';
+  list.forEach(a=>{
+    const badge=a.testStatus==='done'?'<span class="badge b-done">ทำแล้ว</span>':
+                a.testStatus==='sent'?'<span class="badge b-sent">ส่งแล้ว</span>':
+                a.isDuplicate?'<span class="badge b-reject">ซ้ำ</span>':
+                '<span class="badge b-new">ใหม่</span>';
+    html+=`<tr>
+      <td><input type="checkbox" class="sel1" data-id="${a.id}" ${selectedTab1.has(a.id)?'checked':''} onchange="toggleSel(1,'${a.id}',this.checked)"></td>
+      <td>${a.id}</td>
+      <td><strong>${a.fullName||'-'}</strong></td>
+      <td style="max-width:180px">${(a.position||'-').substring(0,35)}</td>
+      <td>${a.applyDate||'-'}</td>
+      <td>${a.line||a.fb||'-'}</td>
+      <td>${badge}</td>
+      <td><div class="btn-grp">
+        <button class="btn btn-sm btn-i" onclick="viewDetail('${a.id}')">👁 ดู</button>
+        <button class="btn btn-sm btn-w" onclick="sendOneTest('${a.id}')">📤 ส่ง</button>
+      </div></td>
+    </tr>`;
+  });
+  document.getElementById('tbl-applicants').innerHTML=html||'<tr><td colspan="8" style="text-align:center;color:#999;padding:30px">ไม่พบข้อมูล</td></tr>';
+}
+
+function toggleSel(tab,id,checked){
+  const s=tab===1?selectedTab1:tab===2?selectedTab2:tab===3?selectedTab3:selectedTab4;
+  if(checked)s.add(id);else s.delete(id);
+}
+function toggleAllTab1(cb){document.querySelectorAll('.sel1').forEach(c=>{c.checked=cb.checked;toggleSel(1,c.dataset.id,cb.checked)});}
+function toggleAllTab2(cb){document.querySelectorAll('.sel2').forEach(c=>{c.checked=cb.checked;toggleSel(2,c.dataset.id,cb.checked)});}
+function toggleAllTab3(cb){document.querySelectorAll('.sel3').forEach(c=>{c.checked=cb.checked;toggleSel(3,c.dataset.id,cb.checked)});}
+function toggleAllTab4(cb){document.querySelectorAll('.sel4').forEach(c=>{c.checked=cb.checked;toggleSel(4,c.dataset.id,cb.checked)});}
+
+function sendAutoTest(){
+  if(selectedTab1.size===0){alert('กรุณาเลือกผู้สมัคร');return;}
+  let sent=0;
+  selectedTab1.forEach(id=>{
+    const a=applicants.find(x=>x.id===id);
+    if(a&&a.testStatus==='new'){a.testStatus='sent';a.testSent=true;sent++;}
+  });
+  alert(`✅ ส่งแบบทดสอบอัตโนมัติแล้ว ${sent} คน\n(ทัศนคติ, CC, 3E3P — ส่งทาง LINE/FB)`);
+  selectedTab1.clear();
+  updateStats();renderTab1();
+  saveData();
+}
+
+function sendOneTest(id){
+  const a=applicants.find(x=>x.id===id);
+  if(!a)return;
+  const url=`${TEST_URL}?id=${encodeURIComponent(id)}&t=${Date.now().toString(36)}`;
+  const msg=`เรียน คุณ${a.fullName}\n\nบริษัท ประชากิจ จำกัด ขอเชิญทำแบบทดสอบออนไลน์\nตำแหน่ง: ${a.position||'-'}\n\n🔗 ${url}\n\n📋 แบบทดสอบ 4 ส่วน (ทัศนคติ/ทักษะ/CC/3E3P)\n⏱ เวลา 45 นาที\n\nขอบคุณครับ/ค่ะ\nทีมงาน HR - PKG`;
+  
+  document.getElementById('modal-title').textContent=`📤 ส่งแบบทดสอบ — ${a.fullName}`;
+  document.getElementById('modal-body').innerHTML=`
+    <div class="msg-box">${msg}</div>
+    <button class="btn btn-s" onclick="copyText(\`${msg.replace(/`/g,'\\`')}\`)">📋 Copy ข้อความ</button>
+    <p style="margin-top:10px;color:#666;font-size:12px">ส่งทาง: ${a.line?'LINE: '+a.line:''} ${a.fb?'FB: '+a.fb:''}</p>
+  `;
+  document.getElementById('modal').style.display='block';
+  
+  a.testStatus='sent';a.testSent=true;
+  updateStats();renderTab1();saveData();
+}
+
+function showSkillTestMessage(){
+  if(selectedTab1.size===0){alert('กรุณาเลือกผู้สมัคร');return;}
+  const names=[];
+  selectedTab1.forEach(id=>{const a=applicants.find(x=>x.id===id);if(a)names.push(a.fullName);});
+  
+  const msg=`เรียน ทีมงาน HR\n\nกรุณาส่งแบบทดสอบทักษะให้กับผู้สมัครดังนี้:\n\n${names.map((n,i)=>`${i+1}. ${n}`).join('\n')}\n\n[แนบลิงก์แบบทดสอบทักษะแต่ละคน]`;
+  
+  document.getElementById('modal-title').textContent='📝 แบบทดสอบทักษะ (HR ส่งเอง)';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="warn"><strong>หมายเหตุ:</strong> แบบทดสอบทักษะ HR ต้องส่งเอง (ระบบไม่สามารถส่งอัตโนมัติได้)</div>
+    <div class="msg-box">${msg}</div>
+    <button class="btn btn-s" onclick="copyText(\`${msg.replace(/`/g,'\\`')}\`)">📋 Copy ข้อความ</button>
+  `;
+  document.getElementById('modal').style.display='block';
+}
+
+// ===== TAB 2: ส่งแบบทดสอบทักษะและนัดสัมภาษณ์ =====
+function renderTab2(){
+  const done=applicants.filter(a=>a.testStatus==='done');
+  let html='';
+  done.forEach(a=>{
+    const s=a.scores||{};
+    const skill=a.skillTestDone?'<span class="badge b-done">ทำแล้ว</span>':'<input type="checkbox" class="sel2" data-id="'+a.id+'" onchange="toggleSel(2,\''+a.id+'\',this.checked)">';
+    html+=`<tr>
+      <td>${skill}</td>
+      <td><strong>${a.fullName}</strong></td>
+      <td style="max-width:150px">${(a.position||'-').substring(0,30)}</td>
+      <td>${scoreBar(s.attitude)}</td>
+      <td>${scoreBar(s.cc)}</td>
+      <td>${scoreBar(s.e3p)}</td>
+      <td><strong>${s.overall||0}</strong></td>
+      <td>${skill}</td>
+    </tr>`;
+  });
+  document.getElementById('tbl-test-done').innerHTML=html||'<tr><td colspan="8" style="text-align:center;color:#999;padding:30px">ยังไม่มีผู้สมัครทำแบบทดสอบเสร็จ</td></tr>';
+  
+  // AI Analysis
+  let aiHtml='';
+  done.forEach(a=>{
+    const s=a.scores||{};
+    const pass=s.overall>=70;
+    aiHtml+=`<div class="ai-box">
+      <h4>🤖 ${a.fullName} — ${a.position||'-'}</h4>
+      <p><strong>คะแนนรวม:</strong> ${s.overall||0}/100 | <strong>AI แนะนำ:</strong> ${pass?'<span class="badge b-interview">✅ เหมาะสม</span>':'<span class="badge b-reject">❌ ไม่เหมาะสม</span>'}</p>
+      <p style="margin-top:5px"><strong>วิเคราะห์:</strong> ${a.grade>=3?'GPAX ดี มีพื้นฐานการศึกษาแข็งแรงแ':''} ${s.attitude>=80?'ทัศนคติดีมาก ':'ทัศนคติพอใช้ '} ${s.cc>=75?'CC ตรงกับองค์กร':'CC ต้องพัฒนาเพิ่ม'} ${pass?'— แนะนำให้เข้าสู่ขั้นตอนสัมภาษณ์':'— แนะนำให้พิจารณาผู้สมัครอื่น'}</p>
+    </div>`;
+  });
+  document.getElementById('ai-analysis').innerHTML=aiHtml||'<p style="color:#999">ยังไม่มีข้อมูล</p>';
+}
+
+function sendSkillTest(){
+  if(selectedTab2.size===0){alert('กรุณาเลือกผู้สมัคร');return;}
+  const names=[];
+  selectedTab2.forEach(id=>{
+    const a=applicants.find(x=>x.id===id);
+    if(a){a.skillTestSent=true;names.push(a.fullName);}
+  });
+  alert(`✅ เลือกส่งแบบทดสอบทักษะ ${names.length} คน\nHR ดำเนินการส่งเอง`);
+  selectedTab2.clear();renderTab2();saveData();
+}
+
+// ===== TAB 3: นัดสัมภาษณ์ =====
+function renderTab3(){
+  // Select for interview
+  const candidates=applicants.filter(a=>a.testStatus==='done'&&(a.scores?.overall||0)>=60&&!a.interviewScheduled);
+  let html='';
+  candidates.forEach(a=>{
+    const pass=(a.scores?.overall||0)>=70;
+    html+=`<tr>
+      <td><input type="checkbox" class="sel3" data-id="${a.id}" onchange="toggleSel(3,'${a.id}',this.checked)"></td>
+      <td><strong>${a.fullName}</strong></td>
+      <td style="max-width:150px">${(a.position||'-').substring(0,30)}</td>
+      <td><strong>${a.scores?.overall||0}</strong></td>
+      <td>${pass?'<span class="badge b-interview">✅ ผ่าน</span>':'<span class="badge b-reject">❌ ไม่ผ่าน</span>'}</td>
+      <td><button class="btn btn-sm btn-i" onclick="viewDetail('${a.id}')">👁 ดู</button></td>
+    </tr>`;
+  });
+  document.getElementById('tbl-select-interview').innerHTML=html||'<tr><td colspan="6" style="text-align:center;color:#999;padding:30px">ไม่มีผู้สมัครที่ผ่านเกณฑ์</td></tr>';
+  
+  // Interview schedule
+  const scheduled=applicants.filter(a=>a.interviewScheduled);
+  let schHtml='';
+  scheduled.forEach(a=>{
+    schHtml+=`<div style="border:1px solid #e0e0e0;border-radius:8px;padding:15px;margin-bottom:10px">
+      <strong>${a.fullName}</strong> — ${a.position||'-'}<br>
+      📅 วันสัมภาษณ์: ${a.interviewDate||'-'}<br>
+      <div class="btn-grp" style="margin-top:8px">
+        <button class="btn btn-sm btn-i" onclick="generateInterviewForm('${a.id}')">📋 สร้างแบบสัมภาษณ์</button>
+        <button class="btn btn-sm btn-s" onclick="openScoring('${a.id}')">🎤 ให้คะแนน</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('interview-schedule').innerHTML=schHtml||'<p style="color:#999">ยังไม่มีรายการนัดสัมภาษณ์</p>';
+  
+  // Scoring form
+  document.getElementById('scoring-form').innerHTML='<p style="color:#666">เลือกรายการนัดสัมภาษณ์ด้านบน → กด "ให้คะแนน"</p>';
+  
+  // Summary
+  const interviewed=applicants.filter(a=>a.interviewDone);
+  let sumHtml='';
+  interviewed.forEach(a=>{
+    const scores=interviewScores[a.id]||{};
+    const total=Object.values(scores).reduce((s,v)=>s+v,0);
+    const avg=total/Object.keys(scores).length||0;
+    sumHtml+=`<div class="ai-box">
+      <h4>${a.fullName} — ${a.position||'-'}</h4>
+      <p>คะแนนสัมภาษณ์: <strong>${avg.toFixed(1)}</strong>/5 (ผู้สัมภาษณ์ ${Object.keys(scores).length} คน)</p>
+      <p><strong>AI สรุป:</strong> ${avg>=4?'✅ แนะนำให้รับเข้าทำงาน':avg>=3?'⚠️ พิจารณาเพิ่มเติม':'❌ ไม่แนะนำ'}</p>
+    </div>`;
+  });
+  document.getElementById('interview-summary').innerHTML=sumHtml||'<p style="color:#999">ยังไม่มีผลสัมภาษณ์</p>';
+}
+
+function scheduleInterview(){
+  if(selectedTab3.size===0){alert('กรุณาเลือกผู้สมัคร');return;}
+  const date=prompt('ระบุวันนัดสัมภาษณ์ (วว/ดด/ปปปป):');
+  if(!date)return;
+  
+  selectedTab3.forEach(id=>{
+    const a=applicants.find(x=>x.id===id);
+    if(a){a.interviewScheduled=true;a.interviewDate=date;}
+  });
+  
+  // Generate invite message
+  const names=[];
+  selectedTab3.forEach(id=>{const a=applicants.find(x=>x.id===id);if(a)names.push(a);});
+  
+  const msg=names.map(a=>`เรียน คุณ${a.fullName}\n\nบริษัท ประชากิจ จำกัด ขอเรียนเชิญเข้าสัมภาษณ์งาน\nตำแหน่ง: ${a.position||'-'}\nวันที่: ${date}\nเวลา: 10:00 น.\nสถานที่: สำนักงานใหญ่\n\nกรุณายืนยันการเข้าสัมภาษณ์\nขอบคุณครับ/ค่ะ\nทีมงาน HR - PKG`).join('\n\n---\n\n');
+  
+  document.getElementById('modal-title').textContent='📅 ข้อความนัดสัมภาษณ์';
+  document.getElementById('modal-body').innerHTML=`<div class="msg-box">${msg}</div><button class="btn btn-s" onclick="copyText(\`${msg.replace(/`/g,'\\`')}\`)">📋 Copy ข้อความ</button>`;
+  document.getElementById('modal').style.display='block';
+  
+  selectedTab3.clear();updateStats();renderTab3();saveData();
+}
+
+function generateInterviewForm(id){
+  const a=applicants.find(x=>x.id===id);
+  if(!a)return;
+  const s=a.scores||{};
+  
+  const form=`แบบสัมภาษณ์ — ${a.fullName}
+ตำแหน่ง: ${a.position||'-'}
+วันที่: ${a.interviewDate||'-'}
+
+===== ข้อมูลผู้สมัคร =====
+การศึกษา: ${a.education||'-'} ${a.major||''} (GPAX: ${a.grade||'-'})
+สถาบัน: ${a.school||'-'}
+
+===== ผลแบบทดสอบ =====
+ทัศนคติ: ${s.attitude||'-'} /100
+ทักษะ: ${s.skill||'-'} /100
+CC 7 ด้าน: ${s.cc||'-'} /100
+3E3P: ${s.e3p||'-'} /100
+คะแนนรวม: ${s.overall||'-'} /100
+
+===== AI วิเคราะห์ =====
+${s.overall>=70?'ผู้สมัครมีคะแนนดี มีศักยภาพสูง':'ผู้สมัครมีคะแนนปานกลาง ต้องประเมินเพิ่มเติม'}
+${a.grade>=3?'พื้นฐานการศึกษาแข็งแรงแ':'ต้องดูประสบการณ์เพิ่มเติม'}
+
+===== คำถามแนะนำ =====
+1. เล่าประสบการณ์ทำงานที่เกี่ยวข้อง
+2. ทำไมถึงสนใจตำแหน่งนี้?
+3. เป้าหมายใน 3 ปีข้างหน้า?
+4. CC1: ท่านเป็นผู้นำอย่างไร?
+5. CC2: เล่าครั้งที่ต้องปรับตัว
+6. สถานการณ์: ถ้าทีมมีความเห็นไม่ตรงกัน ทำอย่างไร?`;
+
+  document.getElementById('modal-title').textContent=`📋 แบบสัมภาษณ์ — ${a.fullName}`;
+  document.getElementById('modal-body').innerHTML=`<div class="msg-box">${form}</div><button class="btn btn-i" onclick="copyText(\`${form.replace(/`/g,'\\`')}\`)">📋 Copy แบบสัมภาษณ์</button>`;
+  document.getElementById('modal').style.display='block';
+}
+
+function openScoring(id){
+  const a=applicants.find(x=>x.id===id);
+  if(!a)return;
+  
+  let html=`<h3>🎤 ให้คะแนนสัมภาษณ์ — ${a.fullName}</h3>
+  <p style="color:#666;margin-bottom:15px">กรอก ID สมาชิกผู้สัมภาษณ์ + ให้คะแนน (1-5)</p>`;
+  
+  for(let i=1;i<=5;i++){
+    html+=`<div class="interview-form">
+      <h4>ผู้สัมภาษณ์คนที่ ${i}</h4>
+      <div class="fg" style="margin-bottom:10px">
+        <label>ID สมาชิก</label>
+        <input type="text" id="int-${id}-${i}-id" placeholder="เช่น EMP-001" style="width:200px">
+      </div>
+      <div class="fg">
+        <label>คะแนน (1-5)</label>
+        <div class="rating" id="rating-${id}-${i}">
+          ${[1,2,3,4,5].map(n=>`<button class="rating-btn" onclick="setRating('${id}',${i},${n},this)">${n}</button>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  }
+  
+  html+=`<button class="btn btn-s" onclick="saveScores('${id}')">💾 บันทึกคะแนน</button>`;
+  
+  document.getElementById('modal-title').textContent='🎤 ให้คะแนนสัมภาษณ์';
+  document.getElementById('modal-body').innerHTML=html;
+  document.getElementById('modal').style.display='block';
+}
+
+let tempScores={};
+function setRating(appId,interviewer,score,btn){
+  btn.parentElement.querySelectorAll('.rating-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if(!tempScores[appId])tempScores[appId]={};
+  tempScores[appId][interviewer]=score;
+}
+
+function saveScores(id){
+  if(!tempScores[id]){alert('กรุณาให้คะแนน');return;}
+  interviewScores[id]=tempScores[id];
+  const a=applicants.find(x=>x.id===id);
+  if(a){a.interviewDone=true;}
+  saveData();
+  closeModal();
+  updateStats();renderTab3();
+  alert('✅ บันทึกคะแนนแล้ว');
+}
+
+// ===== TAB 4: นัดเริ่มงาน =====
+function renderTab4(){
+  const passed=applicants.filter(a=>a.interviewDone);
+  let html='';
+  passed.forEach(a=>{
+    const scores=interviewScores[a.id]||{};
+    const vals=Object.values(scores);
+    const avg=vals.length?vals.reduce((s,v)=>s+v,0)/vals.length:0;
+    html+=`<tr>
+      <td><input type="checkbox" class="sel4" data-id="${a.id}" onchange="toggleSel(4,'${a.id}',this.checked)"></td>
+      <td><strong>${a.fullName}</strong></td>
+      <td style="max-width:150px">${(a.position||'-').substring(0,30)}</td>
+      <td><strong>${avg.toFixed(1)}</strong>/5</td>
+      <td>${avg>=4?'<span class="badge b-hired">✅ แนะนำรับ</span>':avg>=3?'<span class="badge b-sent">⚠️ พิจารณา</span>':'<span class="badge b-reject">❌ ไม่แนะนำ</span>'}</td>
+      <td><button class="btn btn-sm btn-s" onclick="onboardOne('${a.id}')">🏢 นัดเริ่มงาน</button></td>
+    </tr>`;
+  });
+  document.getElementById('tbl-onboard').innerHTML=html||'<tr><td colspan="6" style="text-align:center;color:#999;padding:30px">ยังไม่มีผู้สมัครที่สัมภาษณ์เสร็จ</td></tr>';
+}
+
+function scheduleOnboard(){
+  if(selectedTab4.size===0){alert('กรุณาเลือกผู้สมัคร');return;}
+  const date=prompt('ระบุวันเริ่มงาน (วว/ดด/ปปปป):');
+  if(!date)return;
+  
+  selectedTab4.forEach(id=>{
+    const a=applicants.find(x=>x.id===id);
+    if(a){a.hired=true;a.startDate=date;}
+  });
+  
+  alert(`✅ นัดเริ่มงานแล้ว ${selectedTab4.size} คน\nวันเริ่มงาน: ${date}`);
+  selectedTab4.clear();updateStats();renderTab4();saveData();
+}
+
+function onboardOne(id){
+  const a=applicants.find(x=>x.id===id);
+  if(!a)return;
+  const date=prompt(`ระบุวันเริ่มงานสำหรับ ${a.fullName}:`);
+  if(!date)return;
+  a.hired=true;a.startDate=date;
+  updateStats();renderTab4();saveData();
+  alert(`✅ นัด ${a.fullName} เริ่มงาน: ${date}`);
+}
+
+// ===== HELPERS =====
+function scoreBar(v){
+  if(!v&&v!==0)return'-';
+  const cls=v>=70?'sf-h':v>=50?'sf-m':'sf-l';
+  return`<div class="score-bar"><div class="score-fill ${cls}" style="width:${v}%"></div></div> ${v}`;
+}
+
+function viewDetail(id){
+  const a=applicants.find(x=>x.id===id);
+  if(!a)return;
+  const s=a.scores||{};
+  document.getElementById('modal-title').textContent=a.fullName;
+  document.getElementById('modal-body').innerHTML=`
+    <table style="width:100%">
+      <tr><td style="width:130px;font-weight:600">ตำแหน่ง</td><td>${a.position||'-'}</td></tr>
+      <tr><td style="font-weight:600">การศึกษา</td><td>${a.education||'-'} ${a.major||''}</td></tr>
+      <tr><td style="font-weight:600">GPAX</td><td>${a.grade||'-'}</td></tr>
+      <tr><td style="font-weight:600">สถาบัน</td><td>${a.school||'-'}</td></tr>
+      <tr><td style="font-weight:600">วันที่สมัคร</td><td>${a.applyDate||'-'}</td></tr>
+      <tr><td style="font-weight:600">LINE</td><td>${a.line||'-'}</td></tr>
+      <tr><td style="font-weight:600">Facebook</td><td>${a.fb||'-'}</td></tr>
+      ${s.overall?`<tr><td style="font-weight:600">คะแนนรวม</td><td><strong>${s.overall}</strong>/100</td></tr>
+      <tr><td style="font-weight:600">ทัศนคติ</td><td>${s.attitude||'-'}</td></tr>
+      <tr><td style="font-weight:600">ทักษะ</td><td>${s.skill||'-'}</td></tr>
+      <tr><td style="font-weight:600">CC</td><td>${s.cc||'-'}</td></tr>
+      <tr><td style="font-weight:600">3E3P</td><td>${s.e3p||'-'}</td></tr>`:''}
+    </table>`;
+  document.getElementById('modal').style.display='block';
+}
+
+function copyText(text){
+  navigator.clipboard.writeText(text).then(()=>{
+    document.getElementById('copy-ok').style.display='block';
+    setTimeout(()=>{document.getElementById('copy-ok').style.display='none';},2000);
+  });
+}
+
+function closeModal(){document.getElementById('modal').style.display='none';}
+
+async function saveData(){
+  try{
+    const r=await fetch(DATA_URL);
+    const d=await r.json();
+    d.applicants=applicants;
+    d.testResults=testResults;
+    d.interviewScores=interviewScores;
+    d.lastUpdate=new Date().toISOString();
+    await fetch(DATA_URL,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+  }catch(e){console.error('Save error:',e);}
+}
+
+// ===== INIT =====
+window.onload=()=>{loadSample();updateStats();renderAll();};
+setInterval(loadData,30000);
+</script>
+</body>
+</html>
