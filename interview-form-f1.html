@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F1 - แบบฟอร์มสัมภาษณ์</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#333;font-size:13px}
+.header{background:linear-gradient(135deg,#1a237e,#283593);color:#fff;padding:20px 30px;position:sticky;top:0;z-index:100}
+.header h1{font-size:20px;margin-bottom:4px}
+.header .sub{opacity:.85;font-size:12px}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.card{background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);padding:20px;margin-bottom:16px}
+.card h2{color:#1a237e;font-size:16px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #e8eaf6}
+.card h3{color:#333;font-size:14px;margin:12px 0 8px}
+
+/* Form Grid */
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-bottom:12px}
+.fi{display:flex;flex-direction:column;gap:4px}
+.fi label{font-size:11px;color:#666;font-weight:600}
+.fi input,.fi select,.fi textarea{padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:13px}
+.fi input:focus,.fi select:focus,.fi textarea:focus{border-color:#1a237e;outline:none}
+.fi textarea{min-height:60px;resize:vertical}
+
+/* Score Table */
+.score-tbl{width:100%;border-collapse:collapse;margin:10px 0}
+.score-tbl th,.score-tbl td{border:1px solid #ddd;padding:8px 10px;text-align:center;font-size:12px}
+.score-tbl th{background:#e8eaf6;color:#1a237e;font-weight:600}
+.score-tbl td:first-child{text-align:left;font-weight:600;width:30px}
+.score-tbl td:nth-child(2){text-align:left;min-width:200px}
+.score-tbl input[type=number]{width:55px;padding:4px;border:1px solid #ddd;border-radius:4px;text-align:center;font-size:13px}
+.score-tbl .total-row{background:#f5f5f5;font-weight:bold}
+.score-tbl .pct-row{background:#e8f5e9;font-weight:bold}
+
+/* EVP */
+.evp-tbl{width:100%;border-collapse:collapse;margin:10px 0}
+.evp-tbl th,.evp-tbl td{border:1px solid #ddd;padding:8px 10px;font-size:12px}
+.evp-tbl th{background:#fff3e0;color:#e65100}
+.evp-tbl select{padding:4px;border:1px solid #ddd;border-radius:4px}
+
+/* Questions */
+.q-block{border:1px solid #e0e0e0;border-radius:8px;padding:12px;margin-bottom:10px}
+.q-block h4{color:#1a237e;font-size:13px;margin-bottom:6px}
+.q-block textarea{width:100%;min-height:50px;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:12px;resize:vertical}
+
+/* Buttons */
+.btn{padding:10px 20px;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px}
+.btn-p{background:#1a237e;color:#fff}.btn-p:hover{background:#283593}
+.btn-s{background:#2e7d32;color:#fff}.btn-s:hover{background:#388e3c}
+.btn-grp{display:flex;gap:10px;margin-top:15px;flex-wrap:wrap}
+
+/* Result */
+.result-box{background:#e8f5e9;padding:15px;border-radius:8px;margin:10px 0;text-align:center}
+.result-box.fail{background:#ffebee}
+.result-box .big{font-size:32px;font-weight:bold}
+
+/* Info */
+.info{background:#e3f2fd;padding:10px;border-radius:8px;margin-bottom:12px;font-size:12px;color:#1565c0}
+.warn{background:#fff3e0;padding:10px;border-radius:8px;margin-bottom:12px;font-size:12px;color:#e65100}
+
+@media(max-width:768px){
+  .fg{grid-template-columns:1fr}
+  .score-tbl{font-size:11px}
+  .score-tbl input[type=number]{width:45px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 F1 - แบบฟอร์มสัมภาษณ์</h1>
+  <div class="sub">แบบฟอร์มบันทึกผลการสัมภาษณ์ — TCC PKG (คะแนนเต็ม 50, เกณฑ์ผ่าน ≥ 65%)</div>
+</div>
+
+<div class="container">
+
+<!-- ส่วนที่ 1: ข้อมูลการสัมภาษณ์ -->
+<div class="card">
+  <h2>📅 ข้อมูลการสัมภาษณ์</h2>
+  <div class="fg">
+    <div class="fi"><label>ตำแหน่งที่สัมภาษณ์</label><select id="position_select"><option value="">-- เลือกตำแหน่ง --</option></select></div>
+    <div class="fi"><label>วันที่สัมภาษณ์</label><input type="date" id="interview_date"></div>
+    <div class="fi"><label>เวลาที่สัมภาษณ์</label><input type="text" id="interview_time" placeholder="เช่น 11.00 น."></div>
+    <div class="fi"><label>รหัสบัตรประชาชนผู้สมัคร</label><input type="text" id="personal_id" placeholder="13 หลัก" maxlength="13"></div>
+  </div>
+  <div class="fg">
+    <div class="fi"><label>คกก.สัมภาษณ์ 1</label><input type="text" id="board1" placeholder="ชื่อ-นามสกุล"></div>
+    <div class="fi"><label>คกก.สัมภาษณ์ 2</label><input type="text" id="board2" placeholder="ชื่อ-นามสกุล"></div>
+    <div class="fi"><label>คกก.สัมภาษณ์ 3</label><input type="text" id="board3" placeholder="ชื่อ-นามสกุล"></div>
+    <div class="fi"><label>คกก.สัมภาษณ์ 4</label><input type="text" id="board4" placeholder="ชื่อ-นามสกุล (ถ้ามี)"></div>
+    <div class="fi"><label>คกก.สัมภาษณ์ 5</label><input type="text" id="board5" placeholder="ชื่อ-นามสกุล (ถ้ามี)"></div>
+  </div>
+</div>
+
+<!-- ส่วนที่ 2: ข้อมูลผู้สมัคร -->
+<div class="card">
+  <h2>👤 ข้อมูลผู้สมัคร</h2>
+  <div class="fg">
+    <div class="fi"><label>ชื่อ-นามสกุล</label><input type="text" id="app_name"></div>
+    <div class="fi"><label>ชื่อเล่น</label><input type="text" id="app_nickname"></div>
+    <div class="fi"><label>อายุ</label><input type="number" id="app_age"></div>
+    <div class="fi"><label>เบอร์โทร</label><input type="text" id="app_tel"></div>
+  </div>
+  <div class="fg">
+    <div class="fi"><label>สถานภาพ</label><select id="app_marital"><option value="">-- เลือก --</option><option>โสด</option><option>สมรส</option><option>หม้าย</option><option>หย่า</option></select></div>
+    <div class="fi"><label>มีพี่น้อง (คน)</label><input type="number" id="app_siblings"></div>
+    <div class="fi"><label>เป็นคนที่</label><input type="number" id="app_order"></div>
+  </div>
+  <div class="fg">
+    <div class="fi"><label>พ่อทำอาชีพ</label><input type="text" id="app_father_job"></div>
+    <div class="fi"><label>แม่ทำอาชีพ</label><input type="text" id="app_mother_job"></div>
+  </div>
+  <div class="fg">
+    <div class="fi"><label>วุฒิการศึกษา</label><select id="app_edu"><option value="">-- เลือก --</option><option>มัธยมศึกษา</option><option>ปวส.</option><option>ปริญญาตรี</option><option>ปริญญาโท</option><option>ปริญญาเอก</option></select></div>
+    <div class="fi"><label>สาขาที่เรียน</label><input type="text" id="app_major"></div>
+    <div class="fi"><label>สถานศึกษา</label><input type="text" id="app_school"></div>
+  </div>
+  <div class="fg">
+    <div class="fi" style="grid-column:1/-1"><label>ที่อยู่ปัจจุบัน</label><input type="text" id="app_address"></div>
+  </div>
+  <div class="fg">
+    <div class="fi" style="grid-column:1/-1"><label>ประสบการณ์ทำงาน</label><textarea id="app_experience" placeholder="ระบุบริษัท ตำแหน่ง ระยะเวลา หน้าที่"></textarea></div>
+  </div>
+</div>
+
+<!-- ส่วนที่ 3: TCC PKG ให้คะแนน -->
+<div class="card">
+  <h2>⭐ TCC PKG — เกณฑ์การให้คะแนน</h2>
+  <div class="info">
+    <strong>เกณฑ์:</strong> คะแนนเต็มข้อละ 5 | ผ่าน = 3.5 ขึ้นไป | ไม่ผ่าน = ต่ำกว่า 2.5 | <strong>เกณฑ์รวม ≥ 65%</strong>
+  </div>
+  <div style="overflow-x:auto">
+  <table class="score-tbl" id="tccTable">
+    <thead>
+      <tr>
+        <th>ลำดับ</th>
+        <th>ความสามารถ (Core Competency)</th>
+        <th>คะแนนเต็ม</th>
+        <th id="th_b1">คกก.1</th>
+        <th id="th_b2">คกก.2</th>
+        <th id="th_b3">คกก.3</th>
+        <th id="th_b4">คกก.4</th>
+        <th id="th_b5">คกก.5</th>
+        <th>สรุปเฉลี่ย</th>
+      </tr>
+    </thead>
+    <tbody id="tccBody"></tbody>
+  </table>
+  </div>
+  <div class="result-box" id="tccResult">
+    <div>คะแนนรวม</div>
+    <div class="big" id="tccTotal">-</div>
+    <div id="tccPct">-</div>
+    <div id="tccPassFail" style="margin-top:8px;font-size:16px;font-weight:bold">-</div>
+  </div>
+</div>
+
+<!-- ส่วนที่ 4: EVP 7 Values -->
+<div class="card">
+  <h2>💎 PKG Employee Value Proposition (EVP) 7 Values</h2>
+  <div class="info">ให้ผู้สมัครเรียงลำดับ 1-6 เหตุผลที่อยากมาทำงานกับองค์กร</div>
+  <table class="evp-tbl">
+    <thead><tr><th>ลำดับ</th><th>หัวข้อ</th><th>อันดับที่เลือก</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>ความเชื่อมั่นในตนเอง และ ความเชื่อมั่นและไว้วางใจซึ่งกันและกัน (TRUST)</td><td><select class="evp-rank"><option value="">-</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></td></tr>
+      <tr><td>2</td><td>ความเคารพและให้เกียรติซึ่งกันและกัน (RESPECT)</td><td><select class="evp-rank"><option value="">-</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></td></tr>
+      <tr><td>3</td><td>ความภาคภูมิใจในตนเอง เพื่อนร่วมงาน ทีม และองค์กร (PRIDE)</td><td><select class="evp-rank"><option value="">-</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></td></tr>
+      <tr><td>4</td><td>ความเป็นอิสระที่จะคิดสร้างสรรค์สิ่งใหม่ ๆ และลงมือทำ (FREEDOM)</td><td><select class="evp-rank"><option value="">-</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></td></tr>
+      <tr><td>5</td><td>บรรยากาศ และสภาพแวดล้อมในการทำงานที่สนุกสนาน สร้างสรรค์ และมีอารมณ์ขัน (FUN)</td><td><select class="evp-rank"><option value="">-</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></td></tr>
+      <tr><td>6</td><td>การสนับสนุนอย่างเต็มที่ให้เรียนรู้ และ เติบโตอย่างต่อเนื่องตลอดเวลา (LEARNING & GROWTH)</td><td><select class="evp-rank"><option value="">-</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></td></tr>
+      <tr><td>7</td><td>ผลตอบแทนที่น่าพึงพอใจ และมีความยั่งยืน (SUSTAINABLE & SATISFACTORY PAY)</td><td><select class="evp-rank"><option value="">-</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select></td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ส่วนที่ 5: คำถามสัมภาษณ์ -->
+<div class="card">
+  <h2>🎤 คำถามสัมภาษณ์ + บันทึกคำตอบ</h2>
+  
+  <h3>📌 จุดแข็ง / จุดอ่อน / เป้าหมาย</h3>
+  <div class="fg">
+    <div class="fi"><label>จุดแข็ง</label><textarea id="q_strength"></textarea></div>
+    <div class="fi"><label>จุดอ่อน</label><textarea id="q_weakness"></textarea></div>
+  </div>
+  <div class="fg">
+    <div class="fi" style="grid-column:1/-1"><label>เป้าหมายความสำเร็จในชีวิต</label><textarea id="q_goal"></textarea></div>
+  </div>
+
+  <h3>📌 คำถามพื้นฐาน</h3>
+  <div class="q-block"><h4>1. การเดินทางสะดวกในการเดินทางหรือไม่</h4><textarea id="q_travel"></textarea></div>
+  <div class="q-block"><h4>2. เป็นคนอารมณ์ขันหรือไม่</h4><textarea id="q_humor"></textarea></div>
+  <div class="q-block"><h4>3. เข้าใจภาวะผู้นำหรือไม่ — มีเหตุการณ์อะไรที่ใช้ภาวะผู้นำ</h4><textarea id="q_leadership"></textarea></div>
+  <div class="q-block"><h4>4. มีทัศนคติเกี่ยวกับการให้บริการลูกค้าอย่างไร — เหตุการณ์ที่ประทับใจ/ไม่ประทับใจ</h4><textarea id="q_service"></textarea></div>
+  <div class="q-block"><h4>5. มีทัศนคติต่อการทำงานเป็นทีมอย่างไร — เป็นส่วนหนึ่งของทีมอย่างไร</h4><textarea id="q_teamwork"></textarea></div>
+  <div class="q-block"><h4>6. บรรยากาศการทำงานมีความสำคัญอย่างไร — เหตุการณ์บรรยากาศที่ไม่ดี</h4><textarea id="q_atmosphere"></textarea></div>
+  <div class="q-block"><h4>7. การเรียนรู้มีความสำคัญอย่างไร — เหตุการณ์ที่ต้องเรียนรู้</h4><textarea id="q_learning"></textarea></div>
+  <div class="q-block"><h4>8. การมีสติในการทำงานมีความสำคัญอย่างไร — เหตุการณ์ที่ต้องใช้สติ</h4><textarea id="q_mindfulness"></textarea></div>
+  <div class="q-block"><h4>9. ขับรถเป็นหรือไม่ เกียร์อะไร</h4><textarea id="q_driving"></textarea></div>
+  <div class="q-block"><h4>10. นำเสนอขายตนเอง — ผลงานที่เคยทำ</h4><textarea id="q_selfsell"></textarea></div>
+
+  <h3>📌 คำถามเจาะลึก (Behavioral)</h3>
+  <div class="q-block"><h4>1. เหตุการณ์ความกดดัน/อึดอัดใจ กับเพื่อนร่วมงาน</h4><textarea id="q_pressure"></textarea></div>
+  <div class="q-block"><h4>2. วิกฤติในการทำงานที่ท้อใจที่สุด</h4><textarea id="q_crisis"></textarea></div>
+  <div class="q-block"><h4>3. ผลงานความภูมิใจที่ริเริ่มปรับปรุงกระบวนการทำงาน</h4><textarea id="q_initiative"></textarea></div>
+  <div class="q-block"><h4>4. วางแผนการทำงานอย่างไรให้ประสบความสำเร็จ</h4><textarea id="q_plan"></textarea></div>
+  <div class="q-block"><h4>5. ปัญหาในการปรับปรุงงาน + จัดการอย่างไร + ผลเป็นอย่างไร</h4><textarea id="q_problem"></textarea></div>
+  <div class="q-block"><h4>6. ลูกค้าที่ทำให้อัดอัดที่สุด + จัดการอย่างไร</h4><textarea id="q_customer"></textarea></div>
+  <div class="q-block"><h4>7. ปัญหาที่เจอบ่อย + แก้ไขอย่างไร</h4><textarea id="q_frequent"></textarea></div>
+  <div class="q-block"><h4>8. ข้อจำกัดในการทำงาน</h4><textarea id="q_limitation"></textarea></div>
+  <div class="q-block"><h4>9. สมัครงานไว้กี่ที่ ที่ไหนบ้าง</h4><textarea id="q_otherapply"></textarea></div>
+</div>
+
+<!-- ส่วนที่ 6: สรุปผล -->
+<div class="card">
+  <h2>📊 สรุปผลการสัมภาษณ์</h2>
+  <div class="fg">
+    <div class="fi"><label>ผลการสัมภาษณ์</label><select id="result_pass"><option value="">-- เลือก --</option><option value="ผ่าน">ผ่าน</option><option value="ไม่ผ่าน">ไม่ผ่าน</option></select></div>
+    <div class="fi"><label>สถานะการจ้าง</label><select id="result_employment"><option value="">-- เลือก --</option><option>สมาชิกสัญญาจ้าง 3 เดือน</option><option>สมาชิกสัญญาจ้าง 4 เดือน</option><option>สมาชิกรายวัน 30 วัน</option></select></div>
+  </div>
+  <div class="fg">
+    <div class="fi" style="grid-column:1/-1"><label>เหตุผลที่ไม่ผ่าน (ถ้ามี)</label><textarea id="result_reason"></textarea></div>
+  </div>
+  <div class="fg">
+    <div class="fi"><label>วันที่นัดเริ่มงาน</label><input type="date" id="result_startdate"></div>
+  </div>
+</div>
+
+<!-- ส่วนที่ 7: ค่าตอบแทน -->
+<div class="card">
+  <h2>💰 ค่าตอบแทน (ใส่เฉพาะตัวเลข)</h2>
+  <div class="fg">
+    <div class="fi"><label>เงินเดือนทดลองงาน</label><input type="number" id="sal_probation" placeholder="เช่น 13500"></div>
+    <div class="fi"><label>เงินเดือนบรรจุ</label><input type="number" id="sal_package" placeholder="เช่น 13500"></div>
+    <div class="fi"><label>เบี้ยท้องถิ่น</label><input type="number" id="sal_chip" placeholder="0"></div>
+  </div>
+  <div class="fg">
+    <div class="fi"><label>เงินพิเศษ</label><input type="number" id="sal_rent" placeholder="0"></div>
+    <div class="fi"><label>ค่าน้ำมันรถ</label><input type="number" id="sal_fuel" placeholder="0"></div>
+    <div class="fi"><label>ค่าโทรศัพท์</label><input type="number" id="sal_phone" placeholder="0"></div>
+    <div class="fi"><label>ค่าวิชาชีพ</label><input type="number" id="sal_prof" placeholder="0"></div>
+  </div>
+</div>
+
+<!-- ส่วนที่ 8: พี่เลี้ยง -->
+<div class="card">
+  <h2>👨‍🏫 พี่เลี้ยง</h2>
+  <div class="fg">
+    <div class="fi"><label>รหัสพี่เลี้ยง สายงาน คนที่ 1</label><input type="text" id="mentor1_id"></div>
+    <div class="fi"><label>ชื่อพี่เลี้ยง สายงาน คนที่ 1</label><input type="text" id="mentor1_name"></div>
+    <div class="fi"><label>รหัสพี่เลี้ยง สายงาน คนที่ 2</label><input type="text" id="mentor2_id"></div>
+    <div class="fi"><label>ชื่อพี่เลี้ยง สายงาน คนที่ 2</label><input type="text" id="mentor2_name"></div>
+  </div>
+  <div class="fg">
+    <div class="fi"><label>รหัสพี่เลี้ยง ทุนองค์กร</label><input type="text" id="mentor3_id"></div>
+    <div class="fi"><label>ชื่อพี่เลี้ยง ทุนองค์กร</label><input type="text" id="mentor3_name"></div>
+  </div>
+  <div class="fg">
+    <div class="fi" style="grid-column:1/-1"><label>เหตุผลการเลือกพี่เลี้ยง</label><textarea id="mentor_reason"></textarea></div>
+  </div>
+</div>
+
+<!-- ส่วนที่ 9: ผู้อนุมัติใบลา + ผู้ประเมิน -->
+<div class="card">
+  <h2>✅ ผู้อนุมัติใบลา + ผู้ประเมินรายวัน</h2>
+  <div class="fg">
+    <div class="fi"><label>รหัสผู้อนุมัติใบลา</label><input type="text" id="approve_id"></div>
+    <div class="fi"><label>ชื่อผู้อนุมัติใบลา</label><input type="text" id="approve_name"></div>
+    <div class="fi"><label>นามสกุลผู้อนุมัติใบลา</label><input type="text" id="approve_lname"></div>
+  </div>
+  <h3>ผู้ประเมินรายวัน</h3>
+  <div class="fg">
+    <div class="fi"><label>รหัสผู้รับใช้ทีมประเมิน คนที่ 1</label><input type="text" id="eval_head1_id"></div>
+    <div class="fi"><label>ชื่อผู้รับใช้ทีม คนที่ 1</label><input type="text" id="eval_head1_name"></div>
+    <div class="fi"><label>รหัสเพื่อนร่วมงานประเมิน คนที่ 2</label><input type="text" id="eval_mate2_id"></div>
+    <div class="fi"><label>ชื่อเพื่อนร่วมงาน คนที่ 2</label><input type="text" id="eval_mate2_name"></div>
+    <div class="fi"><label>รหัสเพื่อนร่วมงานประเมิน คนที่ 3</label><input type="text" id="eval_mate3_id"></div>
+    <div class="fi"><label>ชื่อเพื่อนร่วมงาน คนที่ 3</label><input type="text" id="eval_mate3_name"></div>
+    <div class="fi"><label>รหัสเพื่อนร่วมงานประเมิน คนที่ 4</label><input type="text" id="eval_mate4_id"></div>
+    <div class="fi"><label>ชื่อเพื่อนร่วมงาน คนที่ 4</label><input type="text" id="eval_mate4_name"></div>
+  </div>
+</div>
+
+<!-- ส่วนที่ 10: ข้อเสนอแนะ -->
+<div class="card">
+  <h2>💬 ข้อเสนอแนะเพิ่มเติมจากกรรมการ</h2>
+  <div class="fg">
+    <div class="fi" style="grid-column:1/-1"><label>คกก.1</label><textarea id="comment1"></textarea></div>
+    <div class="fi" style="grid-column:1/-1"><label>คกก.2</label><textarea id="comment2"></textarea></div>
+    <div class="fi" style="grid-column:1/-1"><label>คกก.3</label><textarea id="comment3"></textarea></div>
+  </div>
+  <div class="fg">
+    <div class="fi" style="grid-column:1/-1"><label>บันทึกเพิ่มเติม</label><textarea id="note_extra" rows="4"></textarea></div>
+  </div>
+</div>
+
+<!-- Buttons -->
+<div class="btn-grp">
+  <button class="btn btn-p" onclick="saveForm()">💾 บันทึกแบบฟอร์ม</button>
+  <button class="btn btn-s" onclick="exportJSON()">📤 Export JSON</button>
+  <button class="btn" style="background:#f57c00;color:#fff" onclick="window.print()">🖨 พิมพ์</button>
+</div>
+
+</div>
+
+<script>
+// TCC Items
+const tccItems = [
+  'เก่งทัศนคติเชิงบวก',
+  'เก่งความสามารถในการปรับตัว',
+  'เก่งความยืดหยุ่น',
+  'เก่งการทำงานเป็นทีม',
+  'เก่งใจรักการเรียนรู้',
+  'เก่งความรับผิดชอบ',
+  'เก่งความคิดริเริ่ม',
+  'เก่งความกระตือรือร้น',
+  'เก่งความซื่อสัตย์',
+  'เก่งการประยุกต์ใช้เทคโนโลยี'
+];
+
+function initTCC(){
+  let html='';
+  tccItems.forEach((item,i)=>{
+    html+=`<tr>
+      <td>${i+1}</td>
+      <td>${item}</td>
+      <td>5</td>
+      <td><input type="number" min="0" max="5" step="0.5" class="tcc-score" data-row="${i}" data-col="0" onchange="calcScores()"></td>
+      <td><input type="number" min="0" max="5" step="0.5" class="tcc-score" data-row="${i}" data-col="1" onchange="calcScores()"></td>
+      <td><input type="number" min="0" max="5" step="0.5" class="tcc-score" data-row="${i}" data-col="2" onchange="calcScores()"></td>
+      <td><input type="number" min="0" max="5" step="0.5" class="tcc-score" data-row="${i}" data-col="3" onchange="calcScores()"></td>
+      <td><input type="number" min="0" max="5" step="0.5" class="tcc-score" data-row="${i}" data-col="4" onchange="calcScores()"></td>
+      <td class="avg-cell" id="avg_${i}">-</td>
+    </tr>`;
+  });
+  // Total row
+  html+=`<tr class="total-row"><td></td><td>รวมคะแนน</td><td>50</td>
+    <td id="total_0">-</td><td id="total_1">-</td><td id="total_2">-</td><td id="total_3">-</td><td id="total_4">-</td>
+    <td id="grandTotal">-</td></tr>`;
+  html+=`<tr class="pct-row"><td></td><td>คิดเป็นร้อยละ</td><td>100%</td>
+    <td id="pct_0">-</td><td id="pct_1">-</td><td id="pct_2">-</td><td id="pct_3">-</td><td id="pct_4">-</td>
+    <td id="grandPct">-</td></tr>`;
+  document.getElementById('tccBody').innerHTML=html;
+}
+
+function calcScores(){
+  const scores=document.querySelectorAll('.tcc-score');
+  const cols=5;
+  const rows=tccItems.length;
+  const colTotals=[0,0,0,0,0];
+  const colCounts=[0,0,0,0,0];
+  
+  // Calc each row average
+  for(let r=0;r<rows;r++){
+    let sum=0,cnt=0;
+    for(let c=0;c<cols;c++){
+      const inp=document.querySelector(`.tcc-score[data-row="${r}"][data-col="${c}"]`);
+      const v=parseFloat(inp.value);
+      if(!isNaN(v)){sum+=v;cnt++;colTotals[c]+=v;colCounts[c]++;}
+    }
+    document.getElementById('avg_'+r).textContent=cnt>0?(sum/cnt).toFixed(2):'-';
+  }
+  
+  // Calc column totals and percentages
+  let grandSum=0,grandCount=0;
+  for(let c=0;c<cols;c++){
+    document.getElementById('total_'+c).textContent=colTotals[c].toFixed(1);
+    const pct=colCounts[c]>0?((colTotals[c]/50)*100).toFixed(1):'-';
+    document.getElementById('pct_'+c).textContent=pct!=='-'?pct+'%':'-';
+    grandSum+=colTotals[c];
+    grandCount+=colCounts[c];
+  }
+  
+  // Grand total (average of all)
+  const avgTotal=grandCount>0?(grandSum/(grandCount/rows)).toFixed(2):'-';
+  const avgPct=grandCount>0?((grandSum/(grandCount/rows*5))*100).toFixed(1):'-';
+  
+  document.getElementById('grandTotal').textContent=avgTotal;
+  document.getElementById('grandPct').textContent=avgPct!=='-'?avgPct+'%':'-';
+  document.getElementById('tccTotal').textContent=avgTotal;
+  document.getElementById('tccPct').textContent=avgPct!=='-'?avgPct+'%':'-';
+  
+  // Pass/Fail
+  const pctNum=parseFloat(avgPct);
+  const rf=document.getElementById('tccResult');
+  const pf=document.getElementById('tccPassFail');
+  if(!isNaN(pctNum)){
+    if(pctNum>=65){
+      rf.classList.remove('fail');
+      pf.innerHTML='✅ ผ่านเกณฑ์ (≥ 65%)';
+    }else{
+      rf.classList.add('fail');
+      pf.innerHTML='❌ ไม่ผ่านเกณฑ์ (< 65%)';
+    }
+  }else{
+    pf.textContent='-';
+  }
+}
+
+// Update board names in table header
+['board1','board2','board3','board4','board5'].forEach((id,i)=>{
+  document.getElementById(id).addEventListener('input',function(){
+    document.getElementById('th_b'+(i+1)).textContent=this.value||('คกก.'+(i+1));
+  });
+});
+
+function saveForm(){
+  const data=collectFormData();
+  // Save to localStorage
+  localStorage.setItem('interviewForm_'+data.personal_id,JSON.stringify(data));
+  alert('✅ บันทึกแบบฟอร์มแล้ว!\nผู้สมัคร: '+data.app_name+'\nรหัส: '+data.personal_id);
+}
+
+function collectFormData(){
+  const d={};
+  // Interview info
+  d.position=document.getElementById('position_select').value;
+  d.interviewDate=document.getElementById('interview_date').value;
+  d.interviewTime=document.getElementById('interview_time').value;
+  d.personalID=document.getElementById('personal_id').value;
+  d.boards=[1,2,3,4,5].map(i=>document.getElementById('board'+i).value);
+  
+  // Applicant info
+  d.appName=document.getElementById('app_name').value;
+  d.appNickname=document.getElementById('app_nickname').value;
+  d.appAge=document.getElementById('app_age').value;
+  d.appTel=document.getElementById('app_tel').value;
+  d.appMarital=document.getElementById('app_marital').value;
+  d.appSiblings=document.getElementById('app_siblings').value;
+  d.appOrder=document.getElementById('app_order').value;
+  d.appFatherJob=document.getElementById('app_father_job').value;
+  d.appMotherJob=document.getElementById('app_mother_job').value;
+  d.appEdu=document.getElementById('app_edu').value;
+  d.appMajor=document.getElementById('app_major').value;
+  d.appSchool=document.getElementById('app_school').value;
+  d.appAddress=document.getElementById('app_address').value;
+  d.appExperience=document.getElementById('app_experience').value;
+  
+  // TCC Scores
+  d.tccScores=[];
+  for(let r=0;r<10;r++){
+    const row=[];
+    for(let c=0;c<5;c++){
+      const inp=document.querySelector(`.tcc-score[data-row="${r}"][data-col="${c}"]`);
+      row.push(parseFloat(inp.value)||0);
+    }
+    d.tccScores.push(row);
+  }
+  
+  // EVP
+  d.evpRanks=[];
+  document.querySelectorAll('.evp-rank').forEach(s=>d.evpRanks.push(s.value));
+  
+  // Questions
+  ['strength','weakness','goal','travel','humor','leadership','service','teamwork','atmosphere','learning','mindfulness','driving','selfsell','pressure','crisis','initiative','plan','problem','customer','frequent','limitation','otherapply'].forEach(q=>{
+    d['q_'+q]=document.getElementById('q_'+q)?.value||'';
+  });
+  
+  // Result
+  d.resultPass=document.getElementById('result_pass').value;
+  d.resultEmployment=document.getElementById('result_employment').value;
+  d.resultReason=document.getElementById('result_reason').value;
+  d.resultStartDate=document.getElementById('result_startdate').value;
+  
+  // Salary
+  d.salProbation=document.getElementById('sal_probation').value;
+  d.salPackage=document.getElementById('sal_package').value;
+  d.salChip=document.getElementById('sal_chip').value;
+  d.salRent=document.getElementById('sal_rent').value;
+  d.salFuel=document.getElementById('sal_fuel').value;
+  d.salPhone=document.getElementById('sal_phone').value;
+  d.salProf=document.getElementById('sal_prof').value;
+  
+  // Mentors
+  d.mentor1Id=document.getElementById('mentor1_id').value;
+  d.mentor1Name=document.getElementById('mentor1_name').value;
+  d.mentor2Id=document.getElementById('mentor2_id').value;
+  d.mentor2Name=document.getElementById('mentor2_name').value;
+  d.mentor3Id=document.getElementById('mentor3_id').value;
+  d.mentor3Name=document.getElementById('mentor3_name').value;
+  d.mentorReason=document.getElementById('mentor_reason').value;
+  
+  // Approvers & Evaluators
+  d.approveId=document.getElementById('approve_id').value;
+  d.approveName=document.getElementById('approve_name').value;
+  d.approveLName=document.getElementById('approve_lname').value;
+  
+  // Comments
+  d.comment1=document.getElementById('comment1').value;
+  d.comment2=document.getElementById('comment2').value;
+  d.comment3=document.getElementById('comment3').value;
+  d.noteExtra=document.getElementById('note_extra').value;
+  
+  d.savedAt=new Date().toISOString();
+  return d;
+}
+
+function exportJSON(){
+  const data=collectFormData();
+  const json=JSON.stringify(data,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`F1_${data.appName||'interview'}_${data.interviewDate||'date'}.json`;
+  a.click();URL.revokeObjectURL(url);
+}
+
+// Init
+window.onload=()=>{initTCC();};
+</script>
+</body>
+</html>
