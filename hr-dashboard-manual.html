@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR Dashboard - ส่งแบบทดสอบ (Manual)</title>
+<style>
+body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+.container { max-width: 1400px; margin: 0 auto; }
+h1 { color: #333; margin-bottom: 10px; }
+.subtitle { color: #666; margin-bottom: 30px; }
+.card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+.stat { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; }
+.stat-value { font-size: 32px; font-weight: bold; color: #1976d2; }
+.stat-label { color: #666; margin-top: 5px; font-size: 14px; }
+.filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.filters select, .filters input { padding: 10px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+table { width: 100%; border-collapse: collapse; }
+th { background: #f5f5f5; padding: 12px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid #ddd; }
+td { padding: 12px; border-bottom: 1px solid #eee; }
+tr:hover { background: #f9f9f9; }
+.status { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+.status-pending { background: #fff3e0; color: #e65100; }
+.status-sent { background: #e3f2fd; color: #1976d2; }
+.status-completed { background: #e8f5e9; color: #2e7d32; }
+.btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.btn-generate { background: #9c27b0; color: white; }
+.btn-generate:hover { background: #7b1fa2; }
+.btn-copy { background: #4caf50; color: white; }
+.btn-copy:hover { background: #388e3c; }
+.btn-view { background: #2196f3; color: white; }
+.btn-view:hover { background: #1976d2; }
+.action-buttons { display: flex; gap: 8px; }
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+.modal-content { background-color: white; margin: 5% auto; padding: 30px; border-radius: 12px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h2 { margin: 0; color: #333; }
+.close { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+.close:hover { color: #000; }
+.message-box { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.6; }
+.copy-success { background: #c8e6c9; padding: 15px; border-radius: 8px; text-align: center; margin-top: 15px; color: #2e7d32; font-weight: 600; display: none; }
+.empty-state { text-align: center; padding: 60px 20px; color: #999; }
+.empty-state-icon { font-size: 64px; margin-bottom: 20px; }
+.info-box { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #1976d2; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>📊 HR Dashboard - ส่งแบบทดสอบ (Manual)</h1>
+<p class="subtitle">สร้างข้อความและส่งผ่าน LINE/Facebook ส่วนตัว</p>
+
+<div class="info-box">
+<strong>💡 วิธีใช้งาน:</strong><br>
+1. คลิกปุ่ม "📝 สร้างข้อความ" ข้างชื่อผู้สมัคร<br>
+2. คลิกปุ่ม "📋 Copy ข้อความ"<br>
+3. Paste ไป LINE/Facebook ส่วนตัว<br>
+4. ส่งให้ผู้สมัคร
+</div>
+
+<div class="stats">
+<div class="stat">
+<div class="stat-value" id="statTotal">0</div>
+<div class="stat-label">ผู้สมัครทั้งหมด</div>
+</div>
+<div class="stat">
+<div class="stat-value" id="statPending" style="color:#e65100">0</div>
+<div class="stat-label">ยังไม่ส่ง</div>
+</div>
+<div class="stat">
+<div class="stat-value" id="statSent" style="color:#1976d2">0</div>
+<div class="stat-label">ส่งแล้ว</div>
+</div>
+<div class="stat">
+<div class="stat-value" id="statCompleted" style="color:#2e7d32">0</div>
+<div class="stat-label">ทำเสร็จแล้ว</div>
+</div>
+</div>
+
+<div class="card">
+<h2>🔍 ตัวกรอง</h2>
+<div class="filters">
+<select id="statusFilter" onchange="render()">
+<option value="all">ทุกสถานะ</option>
+<option value="pending">ยังไม่ส่ง</option>
+<option value="sent">ส่งแล้ว</option>
+<option value="completed">ทำเสร็จแล้ว</option>
+</select>
+<input type="text" id="searchInput" onkeyup="render()" placeholder="🔍 ค้นหาชื่อ/ตำแหน่ง...">
+</div>
+</div>
+
+<div class="card">
+<h2>👥 รายชื่อผู้สมัคร</h2>
+<div id="applicantsList"></div>
+</div>
+</div>
+
+<!-- Modal -->
+<div id="messageModal" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<h2>📝 ข้อความส่งแบบทดสอบ</h2>
+<span class="close" onclick="closeModal()">&times;</span>
+</div>
+<div id="applicantInfo"></div>
+<div class="message-box" id="messageContent"></div>
+<button class="btn btn-copy" onclick="copyMessage()" style="width: 100%; padding: 15px; font-size: 16px;">📋 Copy ข้อความ</button>
+<div class="copy-success" id="copySuccess">✅ Copy สำเร็จ! Paste ไป LINE/Facebook ได้เลย</div>
+<div style="margin-top: 20px; padding: 15px; background: #fff3e0; border-radius: 8px; color: #e65100;">
+<strong>💡 ขั้นตอนต่อไป:</strong><br>
+1. เปิด LINE/Facebook<br>
+2. Paste ข้อความ (Ctrl+V)<br>
+3. ส่งให้ผู้สมัคร<br>
+4. กลับมากดปุ่ม "✅ ส่งแล้ว" ใน Dashboard
+</div>
+</div>
+</div>
+
+<script>
+// โหลดข้อมูลผู้สมัคร
+let applicants = [];
+let assessments = [];
+
+// พยายามโหลดจาก localStorage ก่อน
+const savedApplicants = localStorage.getItem('applicants');
+const savedAssessments = localStorage.getItem('assessments');
+
+if (savedApplicants) {
+  applicants = JSON.parse(savedApplicants);
+}
+
+if (savedAssessments) {
+  assessments = JSON.parse(savedAssessments);
+}
+
+// ถ้าไม่มีข้อมูล ให้โหลดจาก data.json
+if (applicants.length === 0) {
+  fetch('data.json')
+    .then(r => r.json())
+    .then(data => {
+      applicants = data.applicants || [];
+      render();
+    })
+    .catch(err => {
+      console.error('Error loading data:', err);
+      document.getElementById('applicantsList').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>ไม่พบข้อมูลผู้สมัคร</p></div>';
+    });
+}
+
+// อัปเดตสถานะแบบทดสอบ
+function updateStatus() {
+  applicants.forEach(applicant => {
+    const attitudeAssessment = assessments.find(a => a.applicantId === applicant.id && a.testType === 'attitude');
+    const ccAssessment = assessments.find(a => a.applicantId === applicant.id && a.testType === 'cc');
+    const e3pAssessment = assessments.find(a => a.applicantId === applicant.id && a.testType === '3e3p');
+    
+    if (attitudeAssessment && ccAssessment && e3pAssessment) {
+      applicant.testStatus = 'completed';
+    } else if (applicant.testSent) {
+      applicant.testStatus = 'sent';
+    } else {
+      applicant.testStatus = 'pending';
+    }
+  });
+}
+
+function render() {
+  updateStatus();
+  
+  const statusFilter = document.getElementById('statusFilter').value;
+  const searchInput = document.getElementById('searchInput').value.toLowerCase();
+  
+  let filtered = applicants;
+  
+  if (statusFilter !== 'all') {
+    filtered = filtered.filter(a => a.testStatus === statusFilter);
+  }
+  
+  if (searchInput) {
+    filtered = filtered.filter(a => 
+      (a.fullName || '').toLowerCase().includes(searchInput) ||
+      (a.position || '').toLowerCase().includes(searchInput)
+    );
+  }
+  
+  // อัปเดตสถิติ
+  document.getElementById('statTotal').textContent = applicants.length;
+  document.getElementById('statPending').textContent = applicants.filter(a => a.testStatus === 'pending').length;
+  document.getElementById('statSent').textContent = applicants.filter(a => a.testStatus === 'sent').length;
+  document.getElementById('statCompleted').textContent = applicants.filter(a => a.testStatus === 'completed').length;
+  
+  const list = document.getElementById('applicantsList');
+  
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <p>ไม่พบข้อมูลผู้สมัคร</p>
+      </div>
+    `;
+    return;
+  }
+  
+  list.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>ชื่อ-นามสกุล</th>
+          <th>ตำแหน่ง</th>
+          <th>Email</th>
+          <th>LINE ID</th>
+          <th>สถานะ</th>
+          <th>การดำเนินการ</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${filtered.map(a => `
+          <tr>
+            <td><strong>${a.fullName || '-'}</strong></td>
+            <td>${a.position || '-'}</td>
+            <td>${a.email || '-'}</td>
+            <td>${a.lineId || '-'}</td>
+            <td>
+              <span class="status status-${a.testStatus}">
+                ${getStatusText(a.testStatus)}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                ${a.testStatus === 'pending' ? `
+                  <button class="btn btn-generate" onclick="generateMessage('${a.id}')">📝 สร้างข้อความ</button>
+                ` : ''}
+                ${a.testStatus === 'sent' ? `
+                  <button class="btn btn-view" onclick="markAsCompleted('${a.id}')">✅ ส่งแล้ว</button>
+                ` : ''}
+                ${a.testStatus === 'completed' ? `
+                  <button class="btn btn-view" disabled>📊 ทำเสร็จแล้ว</button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function getStatusText(status) {
+  const map = {
+    'pending': 'ยังไม่ส่ง',
+    'sent': 'ส่งแล้ว',
+    'completed': 'ทำเสร็จแล้ว'
+  };
+  return map[status] || status;
+}
+
+function generateMessage(applicantId) {
+  const applicant = applicants.find(a => a.id === applicantId);
+  if (!applicant) return;
+  
+  // สร้างลิงก์แบบทดสอบ
+  const baseUrl = 'https://pakonchotbuncha-netizen.github.io/recruitment-screening';
+  const attitudeUrl = `${baseUrl}/test-attitude.html?token=${applicant.id}`;
+  const ccUrl = `${baseUrl}/test-cc.html?token=${applicant.id}`;
+  const e3pUrl = `${baseUrl}/test-3e3p.html?token=${applicant.id}`;
+  
+  // สร้างข้อความ
+  const message = `📝 แบบทดสอบผู้สมัคร - บริษัท PKG
+
+สวัสดีคุณ ${applicant.fullName}
+
+ขอบคุณที่สนใจร่วมงานกับบริษัท PKG
+กรุณาทำแบบทดสอบออนไลน์ 3 ชุด เพื่อประเมินคุณสมบัติ:
+
+📋 แบบทดสอบ 3 ชุด:
+
+1. 🎯 แบบทดสอบทัศนคติ (5 ข้อ)
+${attitudeUrl}
+
+2. 🏢 แบบทดสอบทุนองค์กร CC (7 ข้อ)
+${ccUrl}
+
+3. 📊 แบบทดสอบ 3E3P (6 ข้อ)
+${e3pUrl}
+
+⏰ ระยะเวลา: 30 นาทีต่อชุด
+📅 กำหนดส่ง: ภายใน 3 วัน
+
+หากมีคำถามหรือปัญหา กรุณาติดต่อฝ่าย HR
+Email: hr@pkg.com | Tel: 02-xxx-xxxx
+
+ขอบคุณครับ/ค่ะ
+ฝ่ายบุคคล PKG`;
+  
+  // แสดงใน Modal
+  document.getElementById('applicantInfo').innerHTML = `
+    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+      <strong>👤 ผู้สมัคร:</strong> ${applicant.fullName}<br>
+      <strong>💼 ตำแหน่ง:</strong> ${applicant.position || '-'}<br>
+      <strong>📧 Email:</strong> ${applicant.email || '-'}<br>
+      <strong>💬 LINE ID:</strong> ${applicant.lineId || '-'}
+    </div>
+  `;
+  
+  document.getElementById('messageContent').textContent = message;
+  document.getElementById('messageModal').style.display = 'block';
+  
+  // เก็บ applicant ID สำหรับ mark as sent
+  window.currentApplicantId = applicantId;
+}
+
+function copyMessage() {
+  const message = document.getElementById('messageContent').textContent;
+  
+  // Copy to clipboard
+  navigator.clipboard.writeText(message).then(() => {
+    document.getElementById('copySuccess').style.display = 'block';
+    
+    // Mark as sent
+    const applicant = applicants.find(a => a.id === window.currentApplicantId);
+    if (applicant) {
+      applicant.testStatus = 'sent';
+      applicant.testSent = true;
+      applicant.testSentDate = new Date().toISOString();
+      
+      // บันทึกใน localStorage
+      localStorage.setItem('applicants', JSON.stringify(applicants));
+    }
+    
+    setTimeout(() => {
+      document.getElementById('copySuccess').style.display = 'none';
+    }, 3000);
+  }).catch(err => {
+    console.error('Copy failed:', err);
+    alert('❌ Copy ไม่สำเร็จ กรุณา copy เอง');
+  });
+}
+
+function markAsCompleted(applicantId) {
+  const applicant = applicants.find(a => a.id === applicantId);
+  if (!applicant) return;
+  
+  if (confirm(`ยืนยันว่าส่งแบบทดสอบให้ ${applicant.fullName} แล้ว?`)) {
+    applicant.testStatus = 'sent';
+    applicant.testSent = true;
+    applicant.testSentDate = new Date().toISOString();
+    
+    localStorage.setItem('applicants', JSON.stringify(applicants));
+    render();
+  }
+}
+
+function closeModal() {
+  document.getElementById('messageModal').style.display = 'none';
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('messageModal');
+  if (event.target === modal) {
+    closeModal();
+  }
+}
+
+// เริ่มต้น
+if (applicants.length > 0) {
+  render();
+}
+</script>
+</body>
+</html>
