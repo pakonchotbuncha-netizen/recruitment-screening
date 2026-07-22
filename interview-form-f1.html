@@ -532,14 +532,27 @@ async function loadApplicants(){
     const d=await r.json();
     applicantsData=d.applicants||[];
     
-    // Populate dropdown
-    const sel=document.getElementById('applicant_select');
-    applicantsData.forEach(a=>{
-      const opt=document.createElement('option');
-      opt.value=a.id;
-      opt.textContent=`${a.fullName||'-'} — ${a.position||'-'} (${a.applyDate||'-'})`;
-      sel.appendChild(opt);
-    });
+    // Check if id is in URL
+    const params=new URLSearchParams(window.location.search);
+    const id=params.get('id');
+    
+    if(id){
+      // Auto-select applicant
+      const a=applicantsData.find(x=>x.id===id);
+      if(a){
+        document.getElementById('applicant_select').value=id;
+        loadApplicantData();
+      }
+    }else{
+      // Populate dropdown for manual selection
+      const sel=document.getElementById('applicant_select');
+      applicantsData.forEach(a=>{
+        const opt=document.createElement('option');
+        opt.value=a.id;
+        opt.textContent=`${a.fullName||'-'} — ${a.position||'-'} (${a.applyDate||'-'})`;
+        sel.appendChild(opt);
+      });
+    }
   }catch(e){
     console.error('Load error:',e);
   }

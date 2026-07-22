@@ -651,40 +651,7 @@ function scheduleInterview(){
 }
 
 function generateInterviewForm(id){
-  const a=applicants.find(x=>x.id===id);
-  if(!a)return;
-  const s=a.scores||{};
-  
-  const form=`แบบสัมภาษณ์ — ${a.fullName}
-ตำแหน่ง: ${a.position||'-'}
-วันที่: ${a.interviewDate||'-'}
-
-===== ข้อมูลผู้สมัคร =====
-การศึกษา: ${a.education||'-'} ${a.major||''} (GPAX: ${a.grade||'-'})
-สถาบัน: ${a.school||'-'}
-
-===== ผลแบบทดสอบ =====
-ทัศนคติ: ${s.attitude||'-'} /100
-ทักษะ: ${s.skill||'-'} /100
-CC 7 ด้าน: ${s.cc||'-'} /100
-3E3P: ${s.e3p||'-'} /100
-คะแนนรวม: ${s.overall||'-'} /100
-
-===== AI วิเคราะห์ =====
-${s.overall>=70?'ผู้สมัครมีคะแนนดี มีศักยภาพสูง':'ผู้สมัครมีคะแนนปานกลาง ต้องประเมินเพิ่มเติม'}
-${a.grade>=3?'พื้นฐานการศึกษาแข็งแรงแ':'ต้องดูประสบการณ์เพิ่มเติม'}
-
-===== คำถามแนะนำ =====
-1. เล่าประสบการณ์ทำงานที่เกี่ยวข้อง
-2. ทำไมถึงสนใจตำแหน่งนี้?
-3. เป้าหมายใน 3 ปีข้างหน้า?
-4. CC1: ท่านเป็นผู้นำอย่างไร?
-5. CC2: เล่าครั้งที่ต้องปรับตัว
-6. สถานการณ์: ถ้าทีมมีความเห็นไม่ตรงกัน ทำอย่างไร?`;
-
-  document.getElementById('modal-title').textContent=`📋 แบบสัมภาษณ์ — ${a.fullName}`;
-  document.getElementById('modal-body').innerHTML=`<div class="msg-box">${form}</div><button class="btn btn-i" onclick="copyText(\`${form.replace(/`/g,'\\`')}\`)">📋 Copy แบบสัมภาษณ์</button>`;
-  document.getElementById('modal').style.display='block';
+  window.open('interview-form-f1.html?id='+encodeURIComponent(id),'_blank');
 }
 
 function openScoring(id){
