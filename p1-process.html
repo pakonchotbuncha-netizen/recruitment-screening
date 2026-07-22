@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P1 - ระบบกระบวนการแสวงหา (Recruitment Process)</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; color: #333; }
+.header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 20px 30px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+.header h1 { font-size: 22px; margin-bottom: 5px; }
+.header .subtitle { opacity: 0.9; font-size: 13px; }
+.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+/* Process Steps */
+.process-nav { display: flex; gap: 4px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 10px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.process-step { padding: 10px 16px; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; transition: all 0.2s; position: relative; }
+.process-step:hover { border-color: #1a237e; }
+.process-step.active { background: #1a237e; color: white; border-color: #1a237e; }
+.process-step.completed { background: #c8e6c9; border-color: #2e7d32; color: #2e7d32; }
+.process-step .step-num { display: inline-block; width: 20px; height: 20px; line-height: 20px; text-align: center; border-radius: 50%; background: #e0e0e0; color: #666; font-size: 11px; margin-right: 6px; }
+.process-step.active .step-num { background: rgba(255,255,255,0.3); color: white; }
+.process-step.completed .step-num { background: #2e7d32; color: white; }
+
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; }
+.stat-value { font-size: 28px; font-weight: bold; }
+.stat-label { color: #666; font-size: 12px; margin-top: 4px; }
+
+/* Card */
+.card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 20px; }
+.card h2 { color: #1a237e; margin-bottom: 15px; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+.card h3 { color: #333; margin-bottom: 10px; font-size: 16px; }
+
+/* Process Description */
+.process-desc { background: #e8eaf6; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; line-height: 1.6; }
+.process-desc strong { color: #1a237e; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f5f5f5; padding: 10px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #ddd; position: sticky; top: 0; }
+td { padding: 10px 12px; border-bottom: 1px solid #eee; }
+tr:hover { background: #f9f9f9; }
+
+/* Badges */
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-new { background: #e3f2fd; color: #1565c0; }
+.badge-selected { background: #fff3e0; color: #e65100; }
+.badge-tested { background: #f3e5f5; color: #7b1fa2; }
+.badge-interview { background: #e8f5e9; color: #2e7d32; }
+.badge-hired { background: #c8e6c9; color: #2e7d32; }
+.badge-rejected { background: #ffcdd2; color: #c62828; }
+
+/* Buttons */
+.btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
+.btn-primary { background: #1a237e; color: white; }
+.btn-primary:hover { background: #283593; }
+.btn-success { background: #2e7d32; color: white; }
+.btn-warning { background: #f57c00; color: white; }
+.btn-info { background: #0288d1; color: white; }
+.btn-danger { background: #c62828; color: white; }
+.btn-sm { padding: 5px 10px; font-size: 11px; }
+.btn-group { display: flex; gap: 5px; flex-wrap: wrap; }
+
+/* Filters */
+.filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+.filters select, .filters input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; }
+
+/* Step Content */
+.step-content { display: none; }
+.step-content.active { display: block; }
+
+/* Modal */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
+.modal-content { background: white; margin: 5% auto; padding: 25px; border-radius: 12px; width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.modal-header h2 { margin: 0; font-size: 18px; }
+.close-btn { font-size: 24px; cursor: pointer; color: #999; }
+.close-btn:hover { color: #333; }
+
+/* Message Box */
+.message-box { background: #f5f5f5; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; margin: 15px 0; }
+.copy-success { background: #c8e6c9; padding: 12px; border-radius: 8px; text-align: center; color: #2e7d32; font-weight: 600; display: none; margin-top: 10px; }
+
+/* Info Box */
+.info-box { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; color: #1565c0; }
+.warning-box { background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; color: #e65100; }
+
+/* Score Bar */
+.score-bar { background: #e0e0e0; border-radius: 10px; height: 8px; overflow: hidden; display: inline-block; width: 100px; vertical-align: middle; }
+.score-fill { height: 100%; border-radius: 10px; }
+.score-fill.high { background: #2e7d32; }
+.score-fill.medium { background: #f57c00; }
+.score-fill.low { background: #c62828; }
+
+/* Loading */
+.loading { text-align: center; padding: 40px; color: #999; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .process-nav { flex-wrap: nowrap; }
+  table { font-size: 11px; }
+  th, td { padding: 6px 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎯 P1 - ระบบกระบวนการแสวงหา (Recruitment Process)</h1>
+  <div class="subtitle">ระบบคัดกรองและสัมภาษณ์ตำแหน่งงาน 9 ขั้นตอน | ข้อมูลจาก BCT PPP7 Sheet</div>
+</div>
+
+<div class="container">
+  <!-- Process Navigation -->
+  <div class="process-nav">
+    <button class="process-step active" onclick="showStep(1)"><span class="step-num">1</span>รับข้อมูล</button>
+    <button class="process-step" onclick="showStep(2)"><span class="step-num">2</span>คัดเลือก</button>
+    <button class="process-step" onclick="showStep(3)"><span class="step-num">3</span>แบบทดสอบ</button>
+    <button class="process-step" onclick="showStep(4)"><span class="step-num">4</span>AI วิเคราะห์</button>
+    <button class="process-step" onclick="showStep(5)"><span class="step-num">5</span>เลือกสัมภาษณ์</button>
+    <button class="process-step" onclick="showStep(6)"><span class="step-num">6</span>ตอบรับ</button>
+    <button class="process-step" onclick="showStep(7)"><span class="step-num">7</span>AI สร้างแบบสัมภาษณ์</button>
+    <button class="process-step" onclick="showStep(8)"><span class="step-num">8</span>สัมภาษณ์</button>
+    <button class="process-step" onclick="showStep(9)"><span class="step-num">9</span>AI สรุปผล</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-value" id="statTotal">0</div>
+      <div class="stat-label">ผู้สมัครทั้งหมด</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#1565c0" id="statNew">0</div>
+      <div class="stat-label">ขั้นตอนที่ 1-2</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#7b1fa2" id="statTested">0</div>
+      <div class="stat-label">ทำแบบทดสอบแล้ว</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#e65100" id="statInterview">0</div>
+      <div class="stat-label">กำลังสัมภาษณ์</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color:#2e7d32" id="statHired">0</div>
+      <div class="stat-label">จ้างงาน</div>
+    </div>
+  </div>
+
+  <!-- STEP 1: รับข้อมูลผู้สมัคร -->
+  <div class="step-content active" id="step1">
+    <div class="card">
+      <h2>📥 ขั้นตอนที่ 1: รับข้อมูลผู้สมัคร</h2>
+      <div class="process-desc">
+        <strong>วัตถุประสงค์:</strong> ดึงข้อมูลผู้สมัครทั้งหมดจาก Google Sheet (BCT PPP7)<br>
+        <strong>แหล่งข้อมูล:</strong> Sheet "A1_ข้อมูลผู้สมัครทั้งหมด" — ตาราง Registerform<br>
+        <strong>หมายเหตุ:</strong> ระบบจะตัดใบสมัครซ้ำออกอัตโนมัติ
+      </div>
+      <div class="info-box">
+        <strong>💡 วิธีดึงข้อมูล:</strong><br>
+        1. เปิด Apps Script ของ Sheet: <a href="https://docs.google.com/spreadsheets/d/1p_KWMT8PfBHRVUUuvUQTO1JBdHoHQFhHtbKwWj_ev74/edit" target="_blank">คลิกที่นี่</a><br>
+        2. Extensions → Apps Script<br>
+        3. Copy function <code>exportApplicantsToAutoSync()</code> ไปวาง<br>
+        4. กด Run → ข้อมูลจะเข้าระบบอัตโนมัติ
+      </div>
+      <div style="margin-bottom:15px">
+        <button class="btn btn-primary" onclick="loadData()">🔄 โหลดข้อมูลจาก Sheet</button>
+        <button class="btn btn-info" onclick="exportData()">📤 Export JSON</button>
+        <span id="loadStatus" style="margin-left:10px;color:#666"></span>
+      </div>
+      <div id="dataPreview">
+        <p class="loading">กำลังโหลดข้อมูล</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: คัดเลือกเบื้องต้น -->
+  <div class="step-content" id="step2">
+    <div class="card">
+      <h2>🔍 ขั้นตอนที่ 2: คัดเลือกเบื้องต้น</h2>
+      <div class="process-desc">
+        <strong>วัตถุประสงค์:</strong> HR คัดเลือกผู้สมัครที่มีคุณสมบัติตรงกับตำแหน่ง<br>
+        <strong>เกณฑ์:</strong> ตำแหน่งตรง / อายุเหมาะสม / วุฒิการศึกษาผ่าน / ประสบการณ์เกี่ยวข้อง
+      </div>
+      <div class="filters">
+        <select id="filterPosition" onchange="renderStep2()">
+          <option value="all">ทุกตำแหน่ง</option>
+        </select>
+        <input type="text" id="filterSearch" placeholder="🔍 ค้นหาชื่อ..." onkeyup="renderStep2()">
+        <button class="btn btn-success" onclick="selectAll()">✅ เลือกทั้งหมด</button>
+      </div>
+      <div id="step2Table"></div>
+    </div>
+  </div>
+
+  <!-- STEP 3: แบบทดสอบ -->
+  <div class="step-content" id="step3">
+    <div class="card">
+      <h2>📝 ขั้นตอนที่ 3: ส่งแบบทดสอบ (4 ชุด)</h2>
+      <div class="process-desc">
+        <strong>วัตถุประสงค์:</strong> ส่งลิงก์แบบทดสอบให้ผู้สมัครทำออนไลน์<br>
+        <strong>แบบทดสอบ:</strong> 1. ทัศนคติ 2. ทักษะ 3. ทุนองค์กร (CC) 4. 3E3P<br>
+        <strong>วิธีส่ง:</strong> สร้างลิงก์ → Copy ข้อความ → ส่ง LINE/Facebook
+      </div>
+      <div id="step3Table"></div>
+    </div>
+  </div>
+
+  <!-- STEP 4: AI วิเคราะห์ -->
+  <div class="step-content" id="step4">
+    <div class="card">
+      <h2>🤖 ขั้นตอนที่ 4: AI วิเคราะห์คุณสมบัติ</h2>
+      <div class="process-desc">
+        <strong>วัตถุประสงค์:</strong> AI วิเคราะห์ผลแบบทดสอบ + ข้อมูลผู้สมัคร<br>
+        <strong>AI ทำ:</strong> วิเคราะห์จุดแข็ง-จุดอ่อน, คะแนน CC แต่ละด้าน, แนะนำ pass/fail
+      </div>
+      <div id="step4Table"></div>
+    </div>
+  </div>
+
+  <!-- STEP 5: คัดเลือกเข้าสัมภาษณ์ -->
+  <div class="step-content" id="step5">
+    <div class="card">
+      <h2>✅ ขั้นตอนที่ 5: คัดเลือกเข้าสัมภาษณ์ (P2)</h2>
+      <div class="process-desc">
+        <strong>วัตถุประสงค์:</strong> ผู้ปฏิบัติงานเลือกผู้สมัครที่ผ่านเกณฑ์เข้าสัมภาษณ์ P2<br>
+        <strong>เกณฑ์:</strong> คะแนนแบบทดสอบผ่าน + AI แนะนำ "ผ่าน"
+      </div>
+      <div id="step5Table"></div>
+    </div>
+  </div>
+
+  <!-- STEP 6: ตอบรับการสัมภาษณ์ -->
+  <div class="step-content" id="step6">
+    <div class="card">
+      <h2>📩 ขั้นตอนที่ 6: ส่งข้อความนัดสัมภาษณ์</h2>
+      <div class="process-desc">
+        <strong>วัตถุประสงค์:</strong> ส่งข้อความนัดสัมภาษณ์ให้ผู้สมัคร<br>
+        <strong>เนื้อหา:</strong> วันที่, เวลา, สถานที่, เอกสารที่ต้องเตรียม
+      </div>
+      <div id="step6Table"></div>
+    </div>
+  </div>
+
+  <!-- STEP 7: AI สร้างแบบสัมภาษณ์ -->
+  <div class="step-content" id="step7">
+    <div class="card">
+      <h2>🧠 ขั้นตอนที่ 7: AI สร้างแบบสัมภาษณ์อัตโนมัติ</h2>
+      <div class="process-desc">
+        <strong>วัตถุประสงค์:</strong> AI สร้างคำถามสัมภาษณ์ตามตำแหน่ง + ข้อมูลผู้สมัคร + ผลแบบทดสอบ
+      </div>
+      <div id="step7Content"></div>
+    </div>
+  </div>
+
+  <!-- STEP 8: สัมภาษณ์ -->
+  <div class="step-content" id="step8">
+    <div class="card">
+      <h2>🎤 ขั้นตอนที่ 8: สัมภาษณ์ (5 ผู้สัมภาษณ์)</h2>
+      <div class="process-desc">
+        <strong>วัตถุประสงค์:</strong> 5 ผู้สัมภาษณ์ให้คะแนน<br>
+        <strong>ผู้สัมภาษณ์:</strong> 1. HR 2. หัวหน้างาน 3. เพื่อนร่วมทีม 4. ลูกค้าภายใน 5. ผู้บริหาร
+      </div>
+      <div id="step8Table"></div>
+    </div>
+  </div>
+
+  <!-- STEP 9: AI สรุปผล -->
+  <div class="step-content" id="step9">
+    <div class="card">
+      <h2>📊 ขั้นตอนที่ 9: AI สรุปผลและให้ความเห็น</h2>
+      <div class="process-desc">
+        <strong>วัตถุประสงค์:</strong> AI สรุปผลการสัมภาษณ์ + แนะนำรับ/ไม่รับ + เหตุผล
+      </div>
+      <div id="step9Content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="detailModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="modalTitle">รายละเอียด</h2>
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ===== CONFIG =====
+const DATA_URL = 'https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d';
+const TEST_BASE_URL = 'https://pakonchotbuncha-netizen.github.io/recruitment-screening/test-form.html';
+
+// ===== STATE =====
+let applicants = [];
+let selectedApplicants = new Set();
+
+// ===== LOAD DATA =====
+async function loadData() {
+  document.getElementById('loadStatus').textContent = 'กำลังโหลด...';
+  try {
+    const resp = await fetch(DATA_URL);
+    const data = await resp.json();
+    
+    applicants = data.applicants || [];
+    
+    // Remove duplicates (by personalID or fullName+applyDate)
+    const seen = new Set();
+    applicants = applicants.filter(a => {
+      const key = a.personalID || `${a.fullName}_${a.applyDate}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    
+    // Merge test results
+    const testResults = data.testResults || [];
+    applicants.forEach(a => {
+      const test = testResults.find(t => t.applicantId === a.id);
+      if (test) {
+        a.testStatus = 'tested';
+        a.testScores = test.scores;
+        a.testRefCode = test.refCode;
+      } else if (a.testSent) {
+        a.testStatus = 'sent';
+      } else {
+        a.testStatus = 'new';
+      }
+      
+      // Set process step
+      if (a.hired) a.step = 9;
+      else if (a.interviewed) a.step = 8;
+      else if (a.interviewScheduled) a.step = 6;
+      else if (a.selectedForInterview) a.step = 5;
+      else if (a.testStatus === 'tested') a.step = 4;
+      else if (a.testStatus === 'sent') a.step = 3;
+      else if (a.selected) a.step = 2;
+      else a.step = 1;
+    });
+    
+    document.getElementById('loadStatus').textContent = `✅ โหลดแล้ว ${applicants.length} คน (ตัดซ้ำออกแล้ว)`;
+    updateStats();
+    renderAllSteps();
+  } catch(e) {
+    console.error(e);
+    loadEmbeddedData();
+    document.getElementById('loadStatus').textContent = `✅ ใช้ข้อมูล embedded ${applicants.length} คน`;
+    updateStats();
+    renderAllSteps();
+  }
+}
+
+function loadEmbeddedData() {
+  // Sample data (no duplicates)
+  applicants = [
+    {id:'APP-001', step:1, status:'new', fullName:'นายอรุณ เค้าทอง', position:'สมาชิกที่ปรึกษางานบริการ(ช่างยนต์)', education:'ปวส.', major:'เทคนิคเครื่องกล', grade:3.51, applyDate:'2017-04-26', line:'Jab1925'},
+    {id:'APP-002', step:1, status:'new', fullName:'นายอนุวัฒน์ แก้วรอด', position:'สมาชิกช่างกรุ๊ปรถเล็ก-สาขาสอยดาว', education:'ปวส.', major:'เครื่องกล', grade:3.36, applyDate:'2018-02-07', line:'903839407'},
+    {id:'APP-003', step:1, status:'new', fullName:'นางสาวรัชดาภรณ์ ขอจัดกลาง', position:'สมาชิกประเมินราคาและบริการลูกค้า', education:'ปริญญาตรี', major:'คอมพิวเตอร์ธุรการ', grade:2.38, applyDate:'2021-01-04', line:'aommija'},
+    {id:'APP-004', step:1, status:'new', fullName:'นายชุติพงศ์ มิ่งมณี', position:'สมาชิกอะไหล่ TIS', education:'ปวส.', major:'คอมพิวเตอร์ธุรกิจ', grade:3.09, applyDate:'2021-01-06', line:'crvjamming'},
+    {id:'APP-005', step:1, status:'new', fullName:'นางสาวจารุวรรณ พิมพิทักษ์', position:'สมาชิกบริการลูกค้าสินเชื่อ สาขาราชบุรี', education:'ปริญญาตรี', major:'ภาพยนตร์และสื่อดิจิทัล', grade:3.29, applyDate:'2021-01-12', line:'nutty0221'},
+  ];
+}
+
+// ===== STATS =====
+function updateStats() {
+  document.getElementById('statTotal').textContent = applicants.length;
+  document.getElementById('statNew').textContent = applicants.filter(a => a.step <= 2).length;
+  document.getElementById('statTested').textContent = applicants.filter(a => a.step >= 4 && a.step < 8).length;
+  document.getElementById('statInterview').textContent = applicants.filter(a => a.step >= 6 && a.step < 9).length;
+  document.getElementById('statHired').textContent = applicants.filter(a => a.step === 9 || a.hired).length;
+}
+
+// ===== STEP NAVIGATION =====
+function showStep(n) {
+  document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.process-step').forEach(el => el.classList.remove('active'));
+  document.getElementById('step' + n).classList.add('active');
+  document.querySelectorAll('.process-step')[n-1].classList.add('active');
+}
+
+// ===== RENDER ALL STEPS =====
+function renderAllSteps() {
+  renderStep1();
+  renderStep2();
+  renderStep3();
+  renderStep4();
+  renderStep5();
+  renderStep6();
+  renderStep7();
+  renderStep8();
+  renderStep9();
+}
+
+// STEP 1: Preview
+function renderStep1() {
+  const preview = applicants.slice(0, 20);
+  let html = `<table><tr><th>#</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>การศึกษา</th><th>วันที่สมัคร</th></tr>`;
+  preview.forEach(a => {
+    html += `<tr>
+      <td>${a.id}</td>
+      <td>${a.fullName || '-'}</td>
+      <td style="max-width:200px">${(a.position || '-').substring(0, 40)}</td>
+      <td>${a.education || '-'} ${a.major || ''}</td>
+      <td>${a.applyDate || '-'}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  if (applicants.length > 20) html += `<p style="text-align:center;color:#999;margin-top:10px">แสดง 20 จาก ${applicants.length} คน</p>`;
+  document.getElementById('dataPreview').innerHTML = html;
+}
+
+// STEP 2: Select
+function renderStep2() {
+  const searchFilter = document.getElementById('filterSearch').value.toLowerCase();
+  
+  // Populate position filter
+  const positions = [...new Set(applicants.map(a => a.position).filter(Boolean))];
+  const posSelect = document.getElementById('filterPosition');
+  if (posSelect.options.length <= 1) {
+    positions.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p; opt.textContent = p.substring(0, 40);
+      posSelect.appendChild(opt);
+    });
+  }
+  
+  let filtered = applicants.filter(a => {
+    if (a.step > 2) return false; // Already selected
+    if (searchFilter && !a.fullName.toLowerCase().includes(searchFilter)) return false;
+    return true;
+  });
+  
+  let html = `<p style="margin-bottom:10px;color:#666">ผู้สมัคร ${filtered.length} คน — เลือกผู้ที่ต้องการส่งแบบทดสอบ</p>`;
+  html += `<table><tr><th><input type="checkbox" onchange="toggleAll(this)"></th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>การศึกษา</th><th>GPAX</th><th>LINE</th></tr>`;
+  filtered.forEach(a => {
+    html += `<tr>
+      <td><input type="checkbox" class="select-checkbox" data-id="${a.id}" ${selectedApplicants.has(a.id) ? 'checked' : ''} onchange="toggleSelect('${a.id}', this.checked)"></td>
+      <td><strong>${a.fullName || '-'}</strong></td>
+      <td style="max-width:200px">${(a.position || '-').substring(0, 35)}</td>
+      <td>${a.education || '-'}<br><small>${a.major || ''}</small></td>
+      <td>${a.grade || '-'}</td>
+      <td>${a.line || '-'}</td>
+    </tr>`;
+  });
+  html += '</table>';
+  html += `<div style="margin-top:15px"><button class="btn btn-success" onclick="proceedToStep3()">✅ ยืนยันการเลือก (${selectedApplicants.size} คน) → ส่งแบบทดสอบ</button></div>`;
+  document.getElementById('step2Table').innerHTML = html;
+}
+
+function toggleSelect(id, checked) {
+  if (checked) selectedApplicants.add(id);
+  else selectedApplicants.delete(id);
+}
+
+function toggleAll(checkbox) {
+  document.querySelectorAll('.select-checkbox').forEach(cb => {
+    cb.checked = checkbox.checked;
+    const id = cb.dataset.id;
+    if (checkbox.checked) selectedApplicants.add(id);
+    else selectedApplicants.delete(id);
+  });
+}
+
+function selectAll() {
+  document.querySelectorAll('.select-checkbox').forEach(cb => {
+    cb.checked = true;
+    selectedApplicants.add(cb.dataset.id);
+  });
+}
+
+function proceedToStep3() {
+  if (selectedApplicants.size === 0) {
+    alert('กรุณาเลือกผู้สมัครอย่างน้อย 1 คน');
+    return;
+  }
+  
+  // Mark as selected
+  selectedApplicants.forEach(id => {
+    const a = applicants.find(x => x.id === id);
+    if (a) {
+      a.selected = true;
+      a.step = 2;
+    }
+  });
+  
+  showStep(3);
+  renderStep3();
+}
+
+// STEP 3: Send Test
+function renderStep3() {
+  const candidates = applicants.filter(a => a.selected && a.step === 2);
+  
+  let html = `<p style="margin-bottom:10px;color:#666">ผู้สมัคร ${candidates.length} คน — ส่งลิงก์แบบทดสอบ</p>`;
+  html += `<table><tr><th>ชื่อ</th><th>ตำแหน่ง</th><th>LINE/FB</th><th>สถานะ</th><th>เครื่องมือ</th></tr>`;
+  candidates.forEach(a => {
+    const statusBadge = a.testStatus === 'tested' ? '<span class="badge badge-tested">ทำแล้ว</span>' :
+                        a.testStatus === 'sent' ? '<span class="badge badge-selected">ส่งแล้ว</span>' :
+                        '<span class="badge badge-new">ยังไม่ส่ง</span>';
+    
+    html += `<tr>
+      <td><strong>${a.fullName || '-'}</strong></td>
+      <td style="max-width:150px">${(a.position || '-').substring(0, 30)}</td>
+      <td>${a.line || '-'}</td>
+      <td>${statusBadge}</td>
+      <td><button class="btn btn-sm btn-warning" onclick="generateTestLink('${a.id}')">📝 สร้างลิงก์</button></td>
+    </tr>`;
+  });
+  html += '</table>';
+  document.getElementById('step3Table').innerHTML = html;
+}
+
+function generateTestLink(applicantId) {
+  const a = applicants.find(x => x.id === applicantId);
+  if (!a) return;
+  
+  const testUrl = `${TEST_BASE_URL}?id=${encodeURIComponent(applicantId)}&t=${Date.now().toString(36)}`;
+  
+  const message = `เรียน คุณ${a.fullName || 'ผู้สมัคร'}
+
+บริษัท ประชากิจ จำกัด (PKG) ขอเชิญท่านทำแบบทดสอบออนไลน์
+ตำแหน่ง: ${a.position || '-'}
+
+🔗 ลิงก์แบบทดสอบ:
+${testUrl}
+
+📋 รายละเอียด:
+• แบบทดสอบ 4 ส่วน (ทัศนคติ, ทักษะ, CC, 3E3P)
+• เวลาทำ: 45 นาที
+• ทำได้ที่มือถือหรือคอมพิวเตอร์
+
+กรุณาทำแบบทดสอบภายใน 3 วัน
+ขอบคุณครับ/ค่ะ
+ทีมงาน HR - PKG`;
+  
+  document.getElementById('modalTitle').textContent = `📝 ลิงก์แบบทดสอบ — ${a.fullName}`;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="message-box" style="word-break:break-all">${testUrl}</div>
+    <button class="btn btn-sm btn-info" onclick="copyToClipboard('${testUrl}')">📋 Copy ลิงก์</button>
+    
+    <h3 style="margin-top:20px">💬 ข้อความสำหรับส่ง:</h3>
+    <div class="message-box" id="messageText">${message}</div>
+    <button class="btn btn-sm btn-success" onclick="copyMessage()">📋 Copy ข้อความทั้งหมด</button>
+    
+    <div class="copy-success" id="copySuccess">✅ คัดลอกแล้ว!</div>
+  `;
+  
+  document.getElementById('detailModal').style.display = 'block';
+  
+  // Mark as sent
+  a.testStatus = 'sent';
+  a.testSent = true;
+  a.step = 3;
+  updateStats();
+  renderStep3();
+}
+
+function copyMessage() {
+  const text = document.getElementById('messageText').textContent;
+  copyToClipboard(text);
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById('copySuccess').style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('copySuccess').style.display = 'none';
+    }, 3000);
+  });
+}
+
+function closeModal() {
+  document.getElementById('detailModal').style.display = 'none';
+}
+
+// STEP 4-9: Placeholder (similar structure)
+function renderStep4() {
+  const candidates = applicants.filter(a => a.testStatus === 'tested');
+  let html = `<p style="color:#666">ผู้สมัคร ${candidates.length} คนที่ทำแบบทดสอบเสร็จ — AI กำลังวิเคราะห์</p>`;
+  if (candidates.length === 0) {
+    html += '<p style="text-align:center;padding:40px;color:#999">ยังไม่มีผู้สมัครที่ทำแบบทดสอบ</p>';
+  } else {
+    html += '<table><tr><th>ชื่อ</th><th>คะแนนรวม</th><th>AI แนะนำ</th></tr>';
+    candidates.forEach(a => {
+      const score = a.testScores?.overall || 0;
+      const pass = score >= 70;
+      html += `<tr>
+        <td>${a.fullName}</td>
+        <td><div class="score-bar"><div class="score-fill ${score >= 70 ? 'high' : score >= 50 ? 'medium' : 'low'}" style="width:${score}%"></div></div> ${score}</td>
+        <td>${pass ? '<span class="badge badge-interview">✅ ผ่าน</span>' : '<span class="badge badge-rejected">❌ ไม่ผ่าน</span>'}</td>
+      </tr>`;
+    });
+    html += '</table>';
+  }
+  document.getElementById('step4Table').innerHTML = html;
+}
+
+function renderStep5() {
+  const candidates = applicants.filter(a => a.testStatus === 'tested' && a.testScores?.overall >= 70);
+  let html = `<p style="color:#666">ผู้สมัคร ${candidates.length} คนที่ผ่านเกณฑ์ — เลือกเข้าสัมภาษณ์ P2</p>`;
+  html += '<table><tr><th>ชื่อ</th><th>คะแนน</th><th>เลือก</th></tr>';
+  candidates.forEach(a => {
+    html += `<tr>
+      <td>${a.fullName}</td>
+      <td>${a.testScores.overall}</td>
+      <td><button class="btn btn-sm btn-success" onclick="selectForInterview('${a.id}')">✅ เลือก</button></td>
+    </tr>`;
+  });
+  html += '</table>';
+  document.getElementById('step5Table').innerHTML = html;
+}
+
+function selectForInterview(id) {
+  const a = applicants.find(x => x.id === id);
+  if (a) {
+    a.selectedForInterview = true;
+    a.step = 5;
+    updateStats();
+    renderStep5();
+    alert('✅ เลือกเข้าสัมภาษณ์แล้ว');
+  }
+}
+
+function renderStep6() {
+  const candidates = applicants.filter(a => a.selectedForInterview);
+  let html = `<p style="color:#666">ผู้สมัคร ${candidates.length} คน — ส่งข้อความนัดสัมภาษณ์</p>`;
+  candidates.forEach(a => {
+    html += `<div style="border:1px solid #eee;padding:12px;border-radius:8px;margin-bottom:10px">
+      <strong>${a.fullName}</strong> — ${a.position || '-'}
+      <div style="margin-top:8px">
+        <button class="btn btn-sm btn-info" onclick="generateInterviewInvite('${a.id}')">📝 สร้างข้อความ</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('step6Table').innerHTML = html;
+}
+
+function generateInterviewInvite(id) {
+  const a = applicants.find(x => x.id === id);
+  if (!a) return;
+  
+  const message = `เรียน คุณ${a.fullName}
+
+บริษัท ประชากิจ จำกัด ขอเรียนเชิญท่านเข้าสัมภาษณ์งาน
+ตำแหน่ง: ${a.position || '-'}
+วันที่: [ระบุวันที่]
+เวลา: [ระบุเวลา]
+สถานที่: [ระบุสถานที่]
+
+กรุณายืนยันการเข้าสัมภาษณ์
+ขอบคุณครับ/ค่ะ
+ทีมงาน HR - PKG`;
+  
+  alert(message);
+}
+
+function renderStep7() {
+  document.getElementById('step7Content').innerHTML = '<p style="color:#666">AI สร้างคำถามสัมภาษณ์ตามตำแหน่ง + ข้อมูลผู้สมัคร + ผลแบบทดสอบ</p>';
+}
+
+function renderStep8() {
+  document.getElementById('step8Table').innerHTML = '<p style="color:#666">5 ผู้สัมภาษณ์ให้คะแนน</p>';
+}
+
+function renderStep9() {
+  document.getElementById('step9Content').innerHTML = '<p style="color:#666">AI สรุปผลการสัมภาษณ์ + แนะนำรับ/ไม่รับ</p>';
+}
+
+function exportData() {
+  const json = JSON.stringify(applicants, null, 2);
+  const blob = new Blob([json], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'p1_applicants.json'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== INIT =====
+window.onload = () => {
+  loadEmbeddedData();
+  updateStats();
+  renderAllSteps();
+};
+</script>
+</body>
+</html>
