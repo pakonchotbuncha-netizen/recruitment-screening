@@ -228,6 +228,10 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#333;font
 <!-- ส่วนที่ 6: สรุปผล -->
 <div class="card">
   <h2>📊 สรุปผลการสัมภาษณ์</h2>
+  <div style="margin-bottom:15px">
+    <button class="btn btn-i" onclick="loadInterviewSummary()">🔄 โหลดสรุปผลจากผู้สัมภาษณ์ทั้งหมด</button>
+  </div>
+  <div id="interview_summary_auto" style="margin-bottom:15px"></div>
   <div class="fg">
     <div class="fi"><label>ผลการสัมภาษณ์</label><select id="result_pass"><option value="">-- เลือก --</option><option value="ผ่าน">ผ่าน</option><option value="ไม่ผ่าน">ไม่ผ่าน</option></select></div>
     <div class="fi"><label>สถานะการจ้าง</label><select id="result_employment"><option value="">-- เลือก --</option><option>สมาชิกสัญญาจ้าง 3 เดือน</option><option>สมาชิกสัญญาจ้าง 4 เดือน</option><option>สมาชิกรายวัน 30 วัน</option></select></div>
@@ -418,11 +422,102 @@ function calcScores(){
   });
 });
 
+async function loadInterviewSummary(){
+  const personalID=document.getElementById('personal_id').value;
+  if(!personalID)return;
+  
+  try{
+    const r=await fetch('https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d');
+    const d=await r.json();
+    const forms=(d.interviewForms||[]).filter(f=>f.personalID===personalID);
+    
+    if(forms.length===0){
+      document.getElementById('interview_summary_auto').innerHTML='<p style="color:#999">ยังไม่มีข้อมูลการสัมภาษณ์</p>';
+      return;
+    }
+    
+    // Calculate average scores from all interviewers
+    let totalScore=0;
+    let totalPct=0;
+    let count=0;
+    const interviewerDetails=[];
+    
+    forms.forEach(f=>{
+      if(f.tccScores&&f.tccScores.length>0){
+        const sum=f.tccScores.flat().reduce((a,b)=>a+b,0);
+        const pct=(sum/50)*100;
+        totalScore+=sum;
+        totalPct+=pct;
+        count++;
+        interviewerDetails.push({
+          name:f.interviewerName||'ไม่ระบุ',
+          score:sum.toFixed(1),
+          pct:pct.toFixed(1)
+        });
+      }
+    });
+    
+    if(count>0){
+      const avgScore=(totalScore/count).toFixed(1);
+      const avgPct=(totalPct/count).toFixed(1);
+      const pass=parseFloat(avgPct)>=65;
+      
+      let html='<div style="background:#e8f5e9;padding:15px;border-radius:8px;border-left:4px solid #2e7d32">';
+      html+='<h3 style="color:#2e7d32;margin-bottom:10px">📊 สรุปผลการสัมภาษณ์จาก '+count+' คน</h3>';
+      html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px">';
+      html+='<div><strong>คะแนนเฉลี่ย:</strong> '+avgScore+'/50</div>';
+      html+='<div><strong>คิดเป็นร้อยละ:</strong> '+avgPct+'%</div>';
+      html+='<div><strong>ผลการประเมิน:</strong> '+(pass?'<span style="color:#2e7d32;font-weight:bold">✅ ผ่าน</span>':'<span style="color:#c62828;font-weight:bold">❌ ไม่ผ่าน</span>')+'</div>';
+      html+='</div>';
+      
+      html+='<div style="margin-top:10px"><strong>รายละเอียดผู้สัมภาษณ์:</strong></div>';
+      html+='<table style="width:100%;border-collapse:collapse;margin-top:5px;font-size:12px">';
+      html+='<tr style="background:#f5f5f5"><th style="padding:8px;text-align:left">ชื่อผู้สัมภาษณ์</th><th style="padding:8px;text-align:center">คะแนน</th><th style="padding:8px;text-align:center">ร้อยละ</th></tr>';
+      interviewerDetails.forEach(i=>{
+        html+='<tr><td style="padding:8px">'+i.name+'</td><td style="padding:8px;text-align:center">'+i.score+'</td><td style="padding:8px;text-align:center">'+i.pct+'%</td></tr>';
+      });
+      html+='</table></div>';
+      
+      document.getElementById('interview_summary_auto').innerHTML=html;
+      
+      // Auto-fill result if pass/fail is clear
+      if(!document.getElementById('result_pass').value){
+        document.getElementById('result_pass').value=pass?'ผ่าน':'ไม่ผ่าน';
+      }
+    }
+  }catch(e){
+    console.error('Load summary error:',e);
+  }
+}
+
 function saveForm(){
   const data=collectFormData();
   // Save to localStorage
-  localStorage.setItem('interviewForm_'+data.personal_id,JSON.stringify(data));
-  alert('✅ บันทึกแบบฟอร์มแล้ว!\nผู้สมัคร: '+data.app_name+'\nรหัส: '+data.personal_id);
+  localStorage.setItem('interviewForm_'+data.personalID+'_'+Date.now(),JSON.stringify(data));
+  
+  // Also save to jsonblob for multi-interviewer summary
+  saveToInterviewPool(data);
+  
+  alert('✅ บันทึกแบบฟอร์มแล้ว!\nผู้สมัคร: '+data.appName+'\nรหัส: '+data.personalID);
+}
+
+async function saveToInterviewPool(data){
+  try{
+    const r=await fetch('https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d');
+    const d=await r.json();
+    if(!d.interviewForms)d.interviewForms=[];
+    
+    // Add this interviewer's form
+    data.interviewerName=data.boards.find(b=>b)||'ไม่ระบุ';
+    data.savedAt=new Date().toISOString();
+    d.interviewForms.push(data);
+    
+    await fetch('https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(d)
+    });
+  }catch(e){console.error('Save to jsonblob error:',e);}
 }
 
 function collectFormData(){
@@ -524,6 +619,18 @@ let applicantsData=[];
 window.onload=()=>{
   initTCC();
   loadApplicants();
+  
+  // Auto-load summary when personal_id is filled
+  document.getElementById('personal_id').addEventListener('change',()=>{
+    setTimeout(loadInterviewSummary,500);
+  });
+  
+  // Load summary after 2 seconds if ID is present
+  setTimeout(()=>{
+    if(document.getElementById('personal_id').value){
+      loadInterviewSummary();
+    }
+  },2000);
 };
 
 async function loadApplicants(){
