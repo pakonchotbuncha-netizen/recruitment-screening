@@ -635,9 +635,21 @@ window.onload=()=>{
 
 async function loadApplicants(){
   try{
+    // Try jsonblob first
     const r=await fetch('https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d');
     const d=await r.json();
     applicantsData=d.applicants||[];
+    
+    // If empty, use sample data for demo
+    if(applicantsData.length===0){
+      applicantsData=[
+        {id:'APP-001',fullName:'นายอรุณ เค้าทอง',position:'สมาชิกที่ปรึกษางานบริการ(ช่างยนต์)',education:'ปวส.',major:'เทคนิคเครื่องกล',grade:3.51,applyDate:'2017-04-26',line:'Jab1925',nickname:'แจ๊บ',age:20,address:'108/5',school:'วิทยาลัยการอาชีพสอยดาว',exp1:'บริษัทประชากิจมอเตอร์เซลล์ จำกัด',scores:{attitude:82,cc:75,e3p:70,overall:76}},
+        {id:'APP-002',fullName:'นายอนุวัฒน์ แก้วรอด',position:'สมาชิกช่างกรุ๊ปรถเล็ก-สาขาสอยดาว',education:'ปวส.',major:'เครื่องกล',grade:3.36,applyDate:'2018-02-07',line:'903839407',nickname:'วัฒน์',age:0,address:'115/5หมู่11',school:'วิทยาลัยการอาชีพสอยดาว',exp1:'อีชูชุปราจีนบุรี',scores:{attitude:70,cc:68,e3p:72,overall:70}},
+        {id:'APP-003',fullName:'นางสาวรัชดาภรณ์ ขอจัดกลาง',position:'สมาชิกประเมินราคาและบริการลูกค้า',education:'ปริญญาตรี',major:'คอมพิวเตอร์ธุรการ',grade:2.38,applyDate:'2021-01-04',line:'aommija',nickname:'ออม',age:32,address:'หมู่บ้านเอื้ออาทรห้วยหมู',school:'มหาวิทยาลัยราชภัฎนครราชสีมา',exp1:'อิออนธนสินทรัพย์ 7ปี',scores:{attitude:65,cc:60,e3p:68,overall:64}},
+        {id:'APP-004',fullName:'นายทรงยุทธ เมฆมี',position:'สมาชิกทีมสานสันพันธ์',education:'ปวส.',major:'ช่างยนต์-เทคนิคเครื่องกล',grade:3.09,applyDate:'2020-10-17',line:'Arm980',nickname:'อาร์ม',age:22,address:'444/144',school:'วิทยาลัยการอาชีพสอยดาว',exp1:'อู่บอยเซอร์วิส',scores:{attitude:88,cc:82,e3p:85,overall:85}},
+        {id:'APP-005',fullName:'นางสาวจารุวรรณ พิมพิทักษ์',position:'สมาชิกบริการลูกค้าสินเชื่อ สาขาราชบุรี',education:'ปริญญาตรี',major:'ภาพยนตร์และสื่อดิจิทัล',grade:3.29,applyDate:'2021-01-12',line:'nutty0221',nickname:'นัท',age:24,address:'348/188 หมู่ที่8',school:'มหาวทยาลัยธุรกิจบัณฑิตย์',exp1:'บริษัท เฮอริเทจ สแน็ค แอนด์ ฟู้ด',scores:{attitude:78,cc:72,e3p:75,overall:75}},
+      ];
+    }
     
     // Check if id is in URL
     const params=new URLSearchParams(window.location.search);
@@ -650,16 +662,16 @@ async function loadApplicants(){
         document.getElementById('applicant_select').value=id;
         loadApplicantData();
       }
-    }else{
-      // Populate dropdown for manual selection
-      const sel=document.getElementById('applicant_select');
-      applicantsData.forEach(a=>{
-        const opt=document.createElement('option');
-        opt.value=a.id;
-        opt.textContent=`${a.fullName||'-'} — ${a.position||'-'} (${a.applyDate||'-'})`;
-        sel.appendChild(opt);
-      });
     }
+    
+    // Populate dropdown
+    const sel=document.getElementById('applicant_select');
+    applicantsData.forEach(a=>{
+      const opt=document.createElement('option');
+      opt.value=a.id;
+      opt.textContent=`${a.fullName||'-'} — ${a.position||'-'} (${a.applyDate||'-'})`;
+      sel.appendChild(opt);
+    });
   }catch(e){
     console.error('Load error:',e);
   }
