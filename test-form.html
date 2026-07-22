@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แบบทดสอบผู้สมัคร - PKG Recruitment</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; color: #333; }
+.header { background: linear-gradient(135deg, #1a237e, #283593); color: white; padding: 20px 30px; }
+.header h1 { font-size: 22px; margin-bottom: 5px; }
+.header .subtitle { opacity: 0.8; font-size: 13px; }
+.container { max-width: 800px; margin: 0 auto; padding: 20px; }
+.card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 20px; margin-bottom: 20px; }
+.card h2 { color: #1a237e; margin-bottom: 15px; font-size: 18px; }
+.card h3 { color: #333; margin-bottom: 10px; font-size: 16px; }
+
+/* Progress */
+.progress-bar { background: #e0e0e0; border-radius: 10px; height: 8px; margin-bottom: 20px; overflow: hidden; }
+.progress-fill { background: linear-gradient(90deg, #1a237e, #3f51b5); height: 100%; transition: width 0.3s; border-radius: 10px; }
+.progress-text { text-align: center; color: #666; font-size: 13px; margin-bottom: 10px; }
+
+/* Questions */
+.question { margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px; }
+.question-text { font-weight: 600; margin-bottom: 10px; font-size: 14px; }
+.question-num { color: #1a237e; font-size: 12px; margin-bottom: 5px; }
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option { display: flex; align-items: center; padding: 10px 15px; background: white; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+.option:hover { border-color: #1a237e; background: #e8eaf6; }
+.option.selected { border-color: #1a237e; background: #c5cae9; }
+.option input { margin-right: 10px; }
+.option label { cursor: pointer; flex: 1; font-size: 14px; }
+
+/* Textarea */
+.text-answer { width: 100%; min-height: 80px; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; resize: vertical; }
+.text-answer:focus { border-color: #1a237e; outline: none; }
+
+/* Buttons */
+.btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+.btn-primary { background: #1a237e; color: white; }
+.btn-primary:hover { background: #283593; }
+.btn-primary:disabled { background: #9e9e9e; cursor: not-allowed; }
+.btn-success { background: #2e7d32; color: white; }
+.btn-success:hover { background: #388e3c; }
+.btn-group { display: flex; gap: 10px; justify-content: space-between; margin-top: 20px; }
+
+/* Section tabs */
+.section-tabs { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
+.section-tab { padding: 8px 16px; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; font-size: 12px; font-weight: 600; }
+.section-tab.active { background: #1a237e; color: white; border-color: #1a237e; }
+.section-tab.completed { background: #c8e6c9; border-color: #2e7d32; color: #2e7d32; }
+
+/* Info box */
+.info-box { background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; color: #1565c0; }
+.warning-box { background: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; color: #e65100; }
+
+/* Welcome screen */
+.welcome { text-align: center; padding: 40px 20px; }
+.welcome h2 { font-size: 24px; margin-bottom: 10px; }
+.welcome p { color: #666; margin-bottom: 20px; line-height: 1.6; }
+.welcome .name-display { font-size: 20px; font-weight: bold; color: #1a237e; margin: 15px 0; }
+
+/* Thank you screen */
+.thankyou { text-align: center; padding: 60px 20px; }
+.thankyou .icon { font-size: 64px; margin-bottom: 20px; }
+.thankyou h2 { color: #2e7d32; margin-bottom: 10px; }
+
+/* Timer */
+.timer { position: fixed; top: 10px; right: 10px; background: white; padding: 8px 15px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); font-size: 13px; font-weight: 600; z-index: 100; }
+.timer.warning { background: #fff3e0; color: #e65100; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .container { padding: 10px; }
+  .card { padding: 15px; }
+  .section-tabs { gap: 3px; }
+  .section-tab { padding: 6px 10px; font-size: 11px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📝 แบบทดสอบผู้สมัครงาน</h1>
+  <div class="subtitle">บริษัท ประชากิจ จำกัด (PKG) — ระบบคัดกรอง P1</div>
+</div>
+
+<div class="container">
+  <!-- Welcome Screen -->
+  <div id="welcomeScreen" class="card">
+    <div class="welcome">
+      <h2>ยินดีต้อนรับ</h2>
+      <p>กรุณาตรวจสอบข้อมูลด้านล่างก่อนเริ่มทำแบบทดสอบ</p>
+      <div class="name-display" id="applicantName">-</div>
+      <p id="applicantInfo">-</p>
+      <div class="info-box">
+        <strong>📋 คำชี้แจง:</strong><br>
+        • แบบทดสอบมี 4 ส่วน: ทัศนคติ, ทักษะ, CC 7 ด้าน, 3E3P<br>
+        • เวลาทำทั้งหมด: 45 นาที<br>
+        • สามารถย้อนกลับแก้ไขได้<br>
+        • กด "ส่งคำตอบ" เมื่อทำครบทุกส่วน
+      </div>
+      <div class="warning-box">
+        <strong>⚠️ หมายเหตุ:</strong> ข้อมูลที่ท่านกรอกจะถูกบันทึกและใช้เพื่อประกอบการคัดเลือกเท่านั้น
+      </div>
+      <button class="btn btn-primary" onclick="startTest()" id="startBtn">🚀 เริ่มทำแบบทดสอบ</button>
+    </div>
+  </div>
+
+  <!-- Test Screen -->
+  <div id="testScreen" style="display:none">
+    <!-- Timer -->
+    <div class="timer" id="timer">⏱ 45:00</div>
+
+    <!-- Progress -->
+    <div class="progress-text" id="progressText">ส่วนที่ 1/4 — ทำเสร็จ 0%</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+    <!-- Section Tabs -->
+    <div class="section-tabs">
+      <div class="section-tab active" onclick="showSection(0)">1. ทัศนคติ</div>
+      <div class="section-tab" onclick="showSection(1)">2. ทักษะ</div>
+      <div class="section-tab" onclick="showSection(2)">3. CC 7 ด้าน</div>
+      <div class="section-tab" onclick="showSection(3)">4. 3E3P</div>
+    </div>
+
+    <!-- Section 1: Attitude -->
+    <div class="section-content" id="section0">
+      <div class="card">
+        <h2>🧠 ส่วนที่ 1: แบบทดสอบทัศนคติ (Attitude)</h2>
+        <p style="color:#666;margin-bottom:15px;font-size:13px">ประเมินมุมมองและแนวคิดในการทำงาน</p>
+        <div id="attitudeQuestions"></div>
+      </div>
+    </div>
+
+    <!-- Section 2: Skill -->
+    <div class="section-content" id="section1" style="display:none">
+      <div class="card">
+        <h2>🔧 ส่วนที่ 2: แบบทดสอบทักษะ (Skill)</h2>
+        <p style="color:#666;margin-bottom:15px;font-size:13px">ประเมินความสามารถเฉพาะตำแหน่ง</p>
+        <div id="skillQuestions"></div>
+      </div>
+    </div>
+
+    <!-- Section 3: CC -->
+    <div class="section-content" id="section2" style="display:none">
+      <div class="card">
+        <h2>⭐ ส่วนที่ 3: Core Competency 7 ด้าน</h2>
+        <p style="color:#666;margin-bottom:15px;font-size:13px">ประเมินคุณสมบัติหลักขององค์กร</p>
+        <div id="ccQuestions"></div>
+      </div>
+    </div>
+
+    <!-- Section 4: 3E3P -->
+    <div class="section-content" id="section3" style="display:none">
+      <div class="card">
+        <h2>📊 ส่วนที่ 4: 3E3P</h2>
+        <p style="color:#666;margin-bottom:15px;font-size:13px">
+          3E: Engagement, Empowerment, Enablement<br>
+          3P: People, Process, Platform
+        </p>
+        <div id="e3pQuestions"></div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="prevSection()" id="prevBtn" disabled>← ย้อนกลับ</button>
+      <button class="btn btn-primary" onclick="nextSection()" id="nextBtn">ถัดไป →</button>
+      <button class="btn btn-success" onclick="submitTest()" id="submitBtn" style="display:none">✅ ส่งคำตอบ</button>
+    </div>
+  </div>
+
+  <!-- Thank You Screen -->
+  <div id="thankYouScreen" style="display:none">
+    <div class="card">
+      <div class="thankyou">
+        <div class="icon">✅</div>
+        <h2>ส่งคำตอบสำเร็จ!</h2>
+        <p>ขอบคุณที่ทำแบบทดสอบเสร็จสิ้น<br>ทีมงาน HR จะติดต่อกลับภายใน 3 วันทำการ</p>
+        <p style="margin-top:20px;color:#999;font-size:12px">
+          รหัสอ้างอิง: <strong id="refCode">-</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== CONFIG =====
+const DATA_URL = 'https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d';
+const BASE_URL = 'https://pakonchotbuncha-netizen.github.io/recruitment-screening';
+
+// ===== STATE =====
+let currentSection = 0;
+let answers = { attitude: {}, skill: {}, cc: {}, e3p: {} };
+let applicantData = null;
+let timerInterval = null;
+let timeLeft = 45 * 60; // 45 minutes
+
+// ===== GET TOKEN FROM URL =====
+function getToken() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('token') || params.get('t') || '';
+}
+
+function getApplicantId() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('id') || params.get('aid') || '';
+}
+
+// ===== INIT =====
+async function init() {
+  const token = getToken();
+  const appId = getApplicantId();
+  
+  if (!token && !appId) {
+    // No token - show generic welcome
+    document.getElementById('applicantName').textContent = 'ผู้สมัคร';
+    document.getElementById('applicantInfo').textContent = 'กรุณาติดต่อ HR เพื่อรับลิงก์แบบทดสอบ';
+    document.getElementById('startBtn').disabled = true;
+    document.getElementById('startBtn').textContent = '⏳ รอรับลิงก์จาก HR';
+    return;
+  }
+  
+  // Load applicant data
+  try {
+    const resp = await fetch(DATA_URL);
+    const data = await resp.json();
+    
+    if (appId && data.applicants) {
+      applicantData = data.applicants.find(a => a.id === appId);
+    }
+    
+    if (applicantData) {
+      document.getElementById('applicantName').textContent = `คุณ${applicantData.fullName || 'ผู้สมัคร'}`;
+      document.getElementById('applicantInfo').innerHTML = `
+        ตำแหน่ง: ${applicantData.position || '-'}<br>
+        วันที่สมัคร: ${applicantData.applyDate || '-'}
+      `;
+    } else {
+      document.getElementById('applicantName').textContent = 'ผู้สมัคร';
+      document.getElementById('applicantInfo').textContent = 'แบบทดสอบพร้อมทำ';
+    }
+  } catch(e) {
+    console.error('Load error:', e);
+    document.getElementById('applicantName').textContent = 'ผู้สมัคร';
+    document.getElementById('applicantInfo').textContent = 'แบบทดสอบพร้อมทำ';
+  }
+}
+
+// ===== QUESTIONS =====
+const questions = {
+  attitude: [
+    { q: 'ท่านรู้สึกอย่างไรเมื่อต้องทำงานภายใต้ความกดดัน?', type: 'choice', options: ['ไม่ชอบเลย', 'พยายามหลีกเลี่ยง', 'ยอมรับและปรับตัว', 'ชอบความท้าทาย', 'ทำงานได้ดีภายใต้ความกดดัน'] },
+    { q: 'เมื่อได้รับคำวิจารณ์จากหัวหน้างาน ท่านทำอย่างไร?', type: 'choice', options: ['รู้สึกเสียใจมาก', 'พยายามอธิบาย', 'รับฟังและปรับปรุง', 'นำกลับมาวิเคราะห์', 'ขอบคุณและนำไปพัฒนาทันที'] },
+    { q: 'ท่านจัดการกับความขัดแย้งในทีมอย่างไร?', type: 'choice', options: ['หลีกเลี่ยง', 'รอให้คนอื่นแก้', 'พูดคุยตรงๆ', 'หาจุดร่วม', 'เป็นคนกลางไกล่เกลี่ย'] },
+    { q: 'เมื่อทำงานไม่สำเร็จตามเป้าหมาย ท่านทำอย่างไร?', type: 'choice', options: ['โทษคนอื่น', 'ท้อแท้', 'วิเคราะห์สาเหตุ', 'วางแผนใหม่', 'พยายาม gấp 2 เท่า'] },
+    { q: 'ท่านมองการทำงานเป็นทีมอย่างไร?', type: 'choice', options: ['ชอบทำงานคนเดียวมากกว่า', 'ทำได้แต่ไม่ชอบ', 'ทำงานตามบทบาท', 'ชอบร่วมมือ', 'ทีมคือทุกอย่าง'] },
+    { q: 'เล่าสถานการณ์ที่ท่านต้องปรับตัวเข้ากับการเปลี่ยนแปลง (ตอบสั้นๆ)', type: 'text' },
+    { q: 'อะไรคือแรงจูงใจหลักในการทำงานของท่าน? (ตอบสั้นๆ)', type: 'text' },
+  ],
+  skill: [
+    { q: 'ท่านประเมินทักษะด้านเทคโนโลยีของท่านอยู่ในระดับใด?', type: 'choice', options: ['พื้นฐาน', 'ปานกลาง', 'ดี', 'ดีมาก', 'เชี่ยวชาญ'] },
+    { q: 'ท่านสามารถใช้งานโปรแกรมสำนักงาน (Excel, Word, PowerPoint) ได้ในระดับใด?', type: 'choice', options: ['พื้นฐาน', 'ใช้งานทั่วไป', 'ขั้นสูง', 'เชี่ยวชาญ', 'สอนคนอื่นได้'] },
+    { q: 'ท่านจัดการเวลาทำงานหลายอย่างพร้อมกันอย่างไร?', type: 'choice', options: ['ทำทีละอย่าง', 'จัดลำดับความสำคัญ', 'ใช้เครื่องมือช่วย', 'ทำหลายอย่างพร้อมกัน', 'วางแผนล่วงหน้าเสมอ'] },
+    { q: 'ท่านเรียนรู้สิ่งใหม่อย่างไร?', type: 'choice', options: ['อ่านจากเอกสาร', 'ดูวิดีโอ', 'ลองทำเอง', 'ถามผู้เชี่ยวชาญ', 'เรียนจากคอร์ส'] },
+    { q: 'อธิบายประสบการณ์ทำงานที่เกี่ยวข้องกับตำแหน่งที่สมัคร (ตอบสั้นๆ)', type: 'text' },
+    { q: 'ท่านมีใบรับรองหรือทักษะพิเศษที่เกี่ยวข้องกับตำแหน่งนี้หรือไม่? (ถ้ามีระบุมา)', type: 'text' },
+  ],
+  cc: [
+    { q: 'CC1: ท่านเคยเป็นผู้นำทีมหรือไม่? เล่ามาสั้นๆ', type: 'text' },
+    { q: 'CC1: ท่าน "รับฟัง-รับใช้-รับผิดชอบ" อย่างไรในทีม?', type: 'choice', options: ['ไม่เคยคิด', 'พยายามทำ', 'ทำเป็นประจำ', 'เป็นธรรมชาติ', 'สอนคนอื่นได้'] },
+    { q: 'CC2: ท่านเคยสร้างนวัตกรรมหรือปรับปรุงกระบวนการทำงานหรือไม่?', type: 'choice', options: ['ไม่เคย', 'คิดแต่ไม่ได้ทำ', 'ทำบ้าง', 'ทำบ่อย', 'ทำทุกครั้งที่มีโอกาส'] },
+    { q: 'CC2: เมื่อมีการเปลี่ยนแปลงในองค์กร ท่านรู้สึกอย่างไร?', type: 'choice', options: ['ไม่ชอบ', 'กังวล', 'ยอมรับ', 'ตื่นเต้น', 'พร้อมเสมอ'] },
+    { q: 'CC3: ท่านสร้างความไว้วางใจกับเพื่อนร่วมงานอย่างไร?', type: 'choice', options: ['ทำงานให้เสร็จ', 'ตรงต่อเวลา', 'โปร่งใส', 'ช่วยเหลือ', 'ทำทั้งหมด'] },
+    { q: 'CC4: ท่านตัดสินใจในทีมอย่างไร?', type: 'choice', options: ['ตัดสินใจเอง', 'ถามหัวหน้า', 'หารือทีม', 'หาฉันทมติ', 'ให้ทีมตัดสินใจ'] },
+    { q: 'CC5: ท่านทำงานด้วยความวินัยอย่างไร?', type: 'choice', options: ['ทำเมื่อถูกเตือน', 'ทำตามคำสั่ง', 'ทำตามที่กำหนด', 'ทำเกินกว่ากำหนด', 'ทำด้วยตัวเองเสมอ'] },
+    { q: 'CC6: ท่านใช้เทคโนโลยีในการทำงานอย่างไร?', type: 'choice', options: ['ไม่ใช้', 'ใช้พื้นฐาน', 'ใช้เป็นประจำ', 'ค้นหาเครื่องมือใหม่', 'ส่งเสริมให้ทีมใช้'] },
+    { q: 'CC7: ท่านสร้างบรรยากาศที่ดีในทีมอย่างไร?', type: 'choice', options: ['ทำงานของตัวเอง', 'ยิ้มแย้ม', 'สร้างรอยยิ้ม', 'ใช้ humor', 'ทำให้ทีมมีความสุข'] },
+  ],
+  e3p: [
+    { q: '3E-Engagement: ท่านรู้สึกผูกพันกับองค์กร précédente อย่างไร?', type: 'choice', options: ['ไม่รู้สึก', 'ทำงานตามหน้าที่', 'รู้สึกดี', 'ผูกพันมาก', 'พร้อมทุ่มเท'] },
+    { q: '3E-Empowerment: ท่านกล้าตัดสินใจในงานที่ได้รับมอบหมายหรือไม่?', type: 'choice', options: ['ไม่กล้า', 'รอคำสั่ง', 'ตัดสินใจเล็กน้อย', 'กล้าตัดสินใจ', 'กล้าและรับผิดชอบ'] },
+    { q: '3E-Enablement: องค์กร précédente สนับสนุนท่านเพียงพอหรือไม่?', type: 'choice', options: ['ไม่เลย', 'น้อย', 'ปานกลาง', 'เพียงพอ', 'ดีมาก'] },
+    { q: '3P-People: ท่านคิดว่าคนในทีม precedente สนับสนุนกันหรือไม่?', type: 'choice', options: ['ไม่เลย', 'น้อย', 'ปานกลาง', 'ดี', 'ดีมาก'] },
+    { q: '3P-Process: กระบวนการทำงานในองค์กร precedente ชัดเจนหรือไม่?', type: 'choice', options: ['ไม่ชัดเจน', 'น้อย', 'ปานกลาง', 'ชัดเจน', 'ชัดเจนมาก'] },
+    { q: '3P-Platform: เครื่องมือ/เทคโนโลยีที่ใช้เพียงพอหรือไม่?', type: 'choice', options: ['ไม่เพียงพอ', 'น้อย', 'ปานกลาง', 'เพียงพอ', 'ดีมาก'] },
+    { q: 'ท่านมีข้อเสนอแนะเพื่อปรับปรุงองค์กรหรือไม่? (ตอบสั้นๆ)', type: 'text' },
+  ]
+};
+
+// ===== RENDER QUESTIONS =====
+function renderQuestions() {
+  renderSection('attitudeQuestions', questions.attitude, 'attitude');
+  renderSection('skillQuestions', questions.skill, 'skill');
+  renderSection('ccQuestions', questions.cc, 'cc');
+  renderSection('e3pQuestions', questions.e3p, 'e3p');
+}
+
+function renderSection(containerId, qs, sectionKey) {
+  const container = document.getElementById(containerId);
+  let html = '';
+  qs.forEach((q, i) => {
+    const qId = `${sectionKey}_${i}`;
+    html += `<div class="question">
+      <div class="question-num">ข้อ ${i+1}/${qs.length}</div>
+      <div class="question-text">${q.q}</div>`;
+    
+    if (q.type === 'choice') {
+      html += '<div class="options">';
+      q.options.forEach((opt, j) => {
+        html += `<div class="option" onclick="selectOption('${qId}', ${j}, this)">
+          <input type="radio" name="${qId}" value="${j}">
+          <label>${opt}</label>
+        </div>`;
+      });
+      html += '</div>';
+    } else {
+      html += `<textarea class="text-answer" id="${qId}" placeholder="พิมพ์คำตอบ..." onchange="saveTextAnswer('${qId}', this.value)"></textarea>`;
+    }
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function selectOption(qId, value, el) {
+  // Deselect siblings
+  el.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  
+  const section = qId.split('_')[0];
+  const idx = parseInt(qId.split('_')[1]);
+  answers[section][idx] = value;
+  updateProgress();
+}
+
+function saveTextAnswer(qId, value) {
+  const section = qId.split('_')[0];
+  const idx = parseInt(qId.split('_')[1]);
+  answers[section][idx] = value;
+  updateProgress();
+}
+
+// ===== NAVIGATION =====
+function startTest() {
+  document.getElementById('welcomeScreen').style.display = 'none';
+  document.getElementById('testScreen').style.display = 'block';
+  renderQuestions();
+  startTimer();
+  updateProgress();
+}
+
+function showSection(idx) {
+  document.querySelectorAll('.section-content').forEach(el => el.style.display = 'none');
+  document.getElementById('section' + idx).style.display = 'block';
+  
+  document.querySelectorAll('.section-tab').forEach((tab, i) => {
+    tab.classList.remove('active');
+    if (i === idx) tab.classList.add('active');
+  });
+  
+  currentSection = idx;
+  updateNavButtons();
+}
+
+function nextSection() {
+  if (currentSection < 3) {
+    // Mark current as completed
+    document.querySelectorAll('.section-tab')[currentSection].classList.add('completed');
+    showSection(currentSection + 1);
+  }
+}
+
+function prevSection() {
+  if (currentSection > 0) {
+    showSection(currentSection - 1);
+  }
+}
+
+function updateNavButtons() {
+  document.getElementById('prevBtn').disabled = currentSection === 0;
+  document.getElementById('nextBtn').style.display = currentSection === 3 ? 'none' : 'inline-block';
+  document.getElementById('submitBtn').style.display = currentSection === 3 ? 'inline-block' : 'none';
+}
+
+function updateProgress() {
+  const total = Object.values(questions).reduce((sum, qs) => sum + qs.length, 0);
+  const answered = Object.values(answers).reduce((sum, section) => sum + Object.keys(section).length, 0);
+  const pct = Math.round((answered / total) * 100);
+  
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `ส่วนที่ ${currentSection+1}/4 — ทำเสร็จ ${pct}%`;
+}
+
+// ===== TIMER =====
+function startTimer() {
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    const min = Math.floor(timeLeft / 60);
+    const sec = timeLeft % 60;
+    const timerEl = document.getElementById('timer');
+    timerEl.textContent = `⏱ ${min}:${sec.toString().padStart(2, '0')}`;
+    
+    if (timeLeft <= 300) timerEl.classList.add('warning'); // 5 min warning
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      submitTest();
+    }
+  }, 1000);
+}
+
+// ===== SUBMIT =====
+async function submitTest() {
+  if (!confirm('ต้องการส่งคำตอบหรือไม่?')) return;
+  
+  clearInterval(timerInterval);
+  
+  // Calculate scores
+  const scores = calculateScores();
+  
+  // Build result
+  const result = {
+    applicantId: applicantData?.id || getApplicantId(),
+    applicantName: applicantData?.fullName || 'Unknown',
+    position: applicantData?.position || '-',
+    answers: answers,
+    scores: scores,
+    completedAt: new Date().toISOString(),
+    timeUsed: (45 * 60) - timeLeft,
+    refCode: 'TEST-' + Date.now().toString(36).toUpperCase(),
+    status: 'assessed'
+  };
+  
+  // Save to jsonblob
+  try {
+    const resp = await fetch(DATA_URL);
+    const data = await resp.json();
+    
+    if (!data.testResults) data.testResults = [];
+    
+    // Update or add
+    const existingIdx = data.testResults.findIndex(r => r.applicantId === result.applicantId);
+    if (existingIdx >= 0) {
+      data.testResults[existingIdx] = result;
+    } else {
+      data.testResults.push(result);
+    }
+    
+    data.lastUpdate = new Date().toISOString();
+    
+    await fetch(DATA_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    // Show thank you
+    document.getElementById('testScreen').style.display = 'none';
+    document.getElementById('thankYouScreen').style.display = 'block';
+    document.getElementById('refCode').textContent = result.refCode;
+    
+  } catch(e) {
+    console.error('Submit error:', e);
+    alert('เกิดข้อผิดพลาดในการส่งคำตอบ กรุณาลองใหม่');
+  }
+}
+
+function calculateScores() {
+  const scores = {};
+  
+  // Attitude (0-100)
+  const attTotal = Object.values(answers.attitude).reduce((sum, v) => sum + (typeof v === 'number' ? v : 2), 0);
+  const attMax = questions.attitude.length * 4;
+  scores.attitude = Math.round((attTotal / attMax) * 100);
+  
+  // Skill (0-100)
+  const skillTotal = Object.values(answers.skill).reduce((sum, v) => sum + (typeof v === 'number' ? v : 2), 0);
+  const skillMax = questions.skill.length * 4;
+  scores.skill = Math.round((skillTotal / skillMax) * 100);
+  
+  // CC (0-100)
+  const ccTotal = Object.values(answers.cc).reduce((sum, v) => sum + (typeof v === 'number' ? v : 2), 0);
+  const ccMax = questions.cc.length * 4;
+  scores.cc = Math.round((ccTotal / ccMax) * 100);
+  
+  // 3E3P (0-100)
+  const e3pTotal = Object.values(answers.e3p).reduce((sum, v) => sum + (typeof v === 'number' ? v : 2), 0);
+  const e3pMax = questions.e3p.length * 4;
+  scores.e3p = Math.round((e3pTotal / e3pMax) * 100);
+  
+  // Overall
+  scores.overall = Math.round((scores.attitude + scores.skill + scores.cc + scores.e3p) / 4);
+  
+  return scores;
+}
+
+// ===== INIT =====
+window.onload = init;
+</script>
+</body>
+</html>
