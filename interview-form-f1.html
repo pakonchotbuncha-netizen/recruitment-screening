@@ -75,6 +75,20 @@ body{font-family:'Segoe UI',Tahoma,sans-serif;background:#f0f2f5;color:#333;font
 
 <div class="container">
 
+<!-- เลือกผู้สมัคร -->
+<div class="card" style="background:#e8f5e9">
+  <h2> เลือกผู้สมัคร</h2>
+  <div class="fg">
+    <div class="fi" style="grid-column:1/-1">
+      <label>เลือกผู้สมัครจากรายชื่อ</label>
+      <select id="applicant_select" onchange="loadApplicantData()" style="padding:10px;font-size:14px">
+        <option value="">-- เลือกผู้สมัคร --</option>
+      </select>
+    </div>
+  </div>
+  <div id="ai_analysis_box" style="display:none;margin-top:15px"></div>
+</div>
+
 <!-- ส่วนที่ 1: ข้อมูลการสัมภาษณ์ -->
 <div class="card">
   <h2>📅 ข้อมูลการสัมภาษณ์</h2>
@@ -506,7 +520,76 @@ function exportJSON(){
 }
 
 // Init
-window.onload=()=>{initTCC();};
+let applicantsData=[];
+window.onload=()=>{
+  initTCC();
+  loadApplicants();
+};
+
+async function loadApplicants(){
+  try{
+    const r=await fetch('https://jsonblob.com/api/jsonBlob/019f8382-8e99-7989-b241-6fb52d12313d');
+    const d=await r.json();
+    applicantsData=d.applicants||[];
+    
+    // Populate dropdown
+    const sel=document.getElementById('applicant_select');
+    applicantsData.forEach(a=>{
+      const opt=document.createElement('option');
+      opt.value=a.id;
+      opt.textContent=`${a.fullName||'-'} — ${a.position||'-'} (${a.applyDate||'-'})`;
+      sel.appendChild(opt);
+    });
+  }catch(e){
+    console.error('Load error:',e);
+  }
+}
+
+function loadApplicantData(){
+  const id=document.getElementById('applicant_select').value;
+  if(!id)return;
+  
+  const a=applicantsData.find(x=>x.id===id);
+  if(!a)return;
+  
+  // Fill applicant info
+  if(a.fullName)document.getElementById('app_name').value=a.fullName;
+  if(a.nickname)document.getElementById('app_nickname').value=a.nickname;
+  if(a.age)document.getElementById('app_age').value=a.age;
+  if(a.line)document.getElementById('app_tel').value=a.line;
+  if(a.education)document.getElementById('app_edu').value=a.education;
+  if(a.major)document.getElementById('app_major').value=a.major;
+  if(a.school)document.getElementById('app_school').value=a.school;
+  if(a.address)document.getElementById('app_address').value=a.address;
+  if(a.exp1)document.getElementById('app_experience').value=a.exp1;
+  
+  // Show AI Analysis
+  const s=a.scores||{};
+  const overall=s.overall||0;
+  const pass=overall>=70;
+  
+  document.getElementById('ai_analysis_box').style.display='block';
+  document.getElementById('ai_analysis_box').innerHTML=`
+    <div style="background:linear-gradient(135deg,#e8eaf6,#c5cae9);padding:15px;border-radius:8px;border-left:4px solid #1a237e">
+      <h3 style="color:#1a237e;margin-bottom:10px">🧑‍💼 บทวิเคราะห์จาก AI (ผู้เชี่ยวชาญด้านการบริหารคน)</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px">
+        <div><strong>คะแนนรวม:</strong> ${overall}/100</div>
+        <div><strong>ทัศนคติ:</strong> ${s.attitude||'-'}/100</div>
+        <div><strong>CC:</strong> ${s.cc||'-'}/100</div>
+        <div><strong>3E3P:</strong> ${s.e3p||'-'}/100</div>
+        <div><strong>GPAX:</strong> ${a.grade||'-'}</div>
+        <div><strong>แนะนำ:</strong> ${pass?'<span style="color:#2e7d32;font-weight:bold">✅ เหมาะสม</span>':'<span style="color:#c62828;font-weight:bold">❌ ไม่เหมาะสม</span>'}</div>
+      </div>
+      <div style="font-size:12px;line-height:1.6;margin-top:10px">
+        <p><strong>📌 ทัศนคติ:</strong> ${s.attitude>=80?'มีทัศนคติเชิงบวกสูง พร้อมเรียนรู้และปรับตัวได้ดี':s.attitude>=60?'ทัศนคติอยู่ในเกณฑ์ยอมรับได้':'ทัศนคติอาจไม่ตรงกับค่านิยมองค์กร'}</p>
+        <p><strong>📌 ทุนองค์กร (CC):</strong> ${s.cc>=75?'มีคุณสมบัติสอดคล้องกับ Core Competency':s.cc>=60?'มี CC บางด้านที่ตรง แต่ต้องพัฒนา':'CC ไม่ค่อยตรงกับองค์กร'}</p>
+        <p><strong>📌 3E3P:</strong> ${s.e3p>=75?'มีศักยภาพในการสร้าง Engagement ดี':s.e3p>=60?'มีศักยภาพปานกลาง':'อาจไม่เหมาะกับการทำงานแบบทีมสูง'}</p>
+        <p><strong> การศึกษา:</strong> ${a.grade>=3.5?'พื้นฐานวิชาการ ممتاز มีศักยภาพในการเรียนรู้งานเร็ว':a.grade>=3?'พื้นฐานวิชาการดี เพียงพอสำหรับตำแหน่ง':'พื้นฐานวิชาการอยู่ในเกณฑ์ยอมรับ'}</p>
+        <p style="margin-top:8px;padding:8px;background:rgba(26,35,126,0.08);border-radius:6px"><strong>💡 ความเห็น:</strong> ${pass?`ผู้สมัครมีศักยภาพโดยรวมดี เหมาะที่จะเข้าสู่ขั้นตอนสัมภาษณ์ โดยเฉพาะด้าน ${s.cc>=75?'วัฒนธรรมองค์กร':'ทัศนคติ'} และ ${s.attitude>=80?'ความสามารถในการทำงานทีม':'ทักษะเฉพาะตำแหน่ง'}`:`ผู้สมัครยังมีช่องว่างที่ต้องพัฒนา แนะนำให้พิจารณาผู้สมัครอื่น`}</p>
+      </div>
+    </div>
+  `;
+}
 </script>
 </body>
 </html>
